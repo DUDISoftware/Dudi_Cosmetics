@@ -7,7 +7,9 @@ import {
   Search,
   InfoIcon,
   ChevronRight,
+  Delete,
 } from "lucide-react";
+
 import { NavLink, useNavigate } from "react-router-dom";
 
 const Header = () => {
@@ -25,10 +27,7 @@ const Header = () => {
   };
 
   const categories = [
-    {
-      name: "Sức Khỏe-Làm Đẹp",
-      subCategories: ["Chăm sóc da mặt", "Chăm sóc tóc và da đầu"],
-    },
+    { name: "Sức Khỏe-Làm Đẹp", subCategories: ["Chăm sóc da mặt", "Chăm sóc tóc và da đầu"] },
     { name: "Mỹ Phẩm High-End", subCategories: [] },
     { name: "Chăm sóc cơ thể", subCategories: [] },
     { name: "Nước hoa", subCategories: [] },
@@ -37,15 +36,20 @@ const Header = () => {
     { name: "DermaHair", subCategories: ["Sản phẩm đặc biệt"] },
   ];
 
-  // Check if user is logged in (you could use context or global state instead)
-  const isLoggedIn = localStorage.getItem("user") !== null;
+  const isLoggedIn = localStorage.getItem("token") !== null; // Kiểm tra xem người dùng đã đăng nhập hay chưa
 
   const handleUserClick = () => {
     if (isLoggedIn) {
-      // Navigate to profile or a different page
-      navigate("/profile");
+      const role = localStorage.getItem("role"); // Lấy role từ localStorage
+      if (role === "user") {
+        // Nếu là người dùng, chuyển tới trang profile
+        navigate("/profile");
+      } else {
+        // Nếu là admin hoặc không phải là user, chuyển tới trang khác (tuỳ ý)
+        navigate("/admin");
+      }
     } else {
-      // If user is not logged in, navigate to login
+      // Nếu chưa đăng nhập, chuyển tới trang login
       navigate("/login");
     }
   };
@@ -69,7 +73,7 @@ const Header = () => {
         <div className="w-[75%] mx-auto px-6 py-3">
           <div className="flex justify-between items-center">
             <div className="flex items-center space-x-4">
-              <h1 className="text-red-600 font-bold text-xl">DUDI Cosmetics</h1>
+              <a href="/" className="text-red-600 font-bold text-xl">DUDI Cosmetics</a>
             </div>
 
             <div className="flex items-center space-x-4 text-gray-800 relative">
@@ -83,7 +87,7 @@ const Header = () => {
               <Heart className="w-5 h-5 hover:text-red-600" />
               <User
                 className="w-5 h-5 hover:text-red-600 cursor-pointer"
-                onClick={handleUserClick}
+                onClick={handleUserClick} // Khi click vào user icon, gọi handleUserClick
               />
             </div>
           </div>
@@ -169,7 +173,7 @@ const Header = () => {
       >
         <div className="flex justify-end p-4">
           <button onClick={toggleMenu} className="text-gray-600">
-            X
+            <Delete />
           </button>
         </div>
         <div className="px-4 py-2">
@@ -185,8 +189,7 @@ const Header = () => {
                   <span>{category.name}</span>
                   {category.subCategories.length > 0 && (
                     <ChevronRight
-                      className={`w-4 h-4 ${openSubMenu === index ? "rotate-90" : ""
-                        } transition-transform`}
+                      className={`w-4 h-4 ${openSubMenu === index ? "rotate-90" : ""} transition-transform`}
                     />
                   )}
                 </div>
@@ -194,10 +197,7 @@ const Header = () => {
                   <ul className="ml-4 mt-2 space-y-2">
                     {category.subCategories.map((subCategory, subIndex) => (
                       <li key={subIndex}>
-                        <a
-                          href="#"
-                          className="text-gray-600 hover:text-red-600"
-                        >
+                        <a href="#" className="text-gray-600 hover:text-red-600">
                           {subCategory}
                         </a>
                       </li>

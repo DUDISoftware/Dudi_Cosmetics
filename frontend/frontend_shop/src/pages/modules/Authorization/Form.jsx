@@ -19,21 +19,57 @@ const Form = ({ isSignInPage = false }) => {
           country: "",
           city: "",
           district: "",
-          gender: "", // Thêm thuộc tính gender
+          gender: "", 
         }),
     email: "",
     password: "",
   });
-
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    alert(isSignInPage ? "Đang đăng nhập..." : "Đang đăng ký...");
-  };
+  
+    const url = isSignInPage
+      ? "http://localhost:5000/api/auth/login"
+      : "http://localhost:5000/api/auth/register";
+  
+    try {
+      const res = await fetch(url, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(data),
+      });
+  
+      const result = await res.json();
+  
+      if (!res.ok) {
+        alert(result.message || "Đã xảy ra lỗi");
+        return;
+      }
+  
+      if (isSignInPage) {
+        localStorage.setItem("token", result.token);
+        localStorage.setItem("role", result.user.role); 
 
+        if (result.user.role === "admin") {
+          navigate("/admin"); 
+        } else {
+          navigate("/"); 
+        }
+      } else {
+        alert("Đăng ký thành công! Bạn có thể đăng nhập");
+        navigate("/login");
+      }
+    } catch (error) {
+      console.error(error);
+      alert("Lỗi kết nối đến server");
+    }
+  };
+  
   return (
     <div className="h-screen w-full flex justify-center items-center bg-gray-100">
       <div className="w-full max-w-[1000px] h-[90vh] flex rounded-2xl overflow-hidden shadow-xl bg-white border border-gray-300">
-        {/* Form Section */}
+       
         <div
           className={`flex flex-col justify-center items-center w-1/2 p-8 ${
             !isSignInPage ? "order-2" : "order-1"
@@ -50,7 +86,7 @@ const Form = ({ isSignInPage = false }) => {
             className="w-full max-w-[350px] space-y-4"
             onSubmit={handleSubmit}
           >
-            {/* Thêm phần Giới tính và Ngày sinh cùng hàng */}
+          
             {!isSignInPage && (
               <>
                 <div className="w-full">
@@ -166,8 +202,6 @@ const Form = ({ isSignInPage = false }) => {
               : "Đã có tài khoản? Đăng nhập ngay"}
           </div>
         </div>
-
-        {/* Image Section */}
         <div
           className={`w-1/2 flex justify-center items-center bg-gray-200 ${
             !isSignInPage ? "order-1" : "order-2"
