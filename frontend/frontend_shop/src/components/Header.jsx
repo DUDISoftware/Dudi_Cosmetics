@@ -8,18 +8,20 @@ import {
   InfoIcon,
   ChevronRight,
 } from "lucide-react";
-import { NavLink } from "react-router-dom";
+import { NavLink, useNavigate } from "react-router-dom";
+
 const Header = () => {
-  // State để kiểm tra xem danh mục có đang mở hay không
+  const navigate = useNavigate();
+
   const [isMenuOpen, setIsMenuOpen] = useState(false);
-  const [openSubMenu, setOpenSubMenu] = useState(null); // Để mở/đóng danh mục con
+  const [openSubMenu, setOpenSubMenu] = useState(null);
 
   const toggleMenu = () => {
     setIsMenuOpen((prev) => !prev);
   };
 
   const toggleSubMenu = (index) => {
-    setOpenSubMenu(openSubMenu === index ? null : index); // Nếu đang mở, thì đóng, ngược lại mở
+    setOpenSubMenu(openSubMenu === index ? null : index);
   };
 
   const categories = [
@@ -34,6 +36,19 @@ const Header = () => {
     { name: "Hasaki Clinic & Spa", subCategories: [] },
     { name: "DermaHair", subCategories: ["Sản phẩm đặc biệt"] },
   ];
+
+  // Check if user is logged in (you could use context or global state instead)
+  const isLoggedIn = localStorage.getItem("user") !== null;
+
+  const handleUserClick = () => {
+    if (isLoggedIn) {
+      // Navigate to profile or a different page
+      navigate("/profile");
+    } else {
+      // If user is not logged in, navigate to login
+      navigate("/login");
+    }
+  };
 
   return (
     <>
@@ -66,7 +81,10 @@ const Header = () => {
                 </span>
               </div>
               <Heart className="w-5 h-5 hover:text-red-600" />
-              <User className="w-5 h-5 hover:text-red-600" />
+              <User
+                className="w-5 h-5 hover:text-red-600 cursor-pointer"
+                onClick={handleUserClick}
+              />
             </div>
           </div>
           <div className="flex items-center justify-between mt-3">
@@ -167,14 +185,11 @@ const Header = () => {
                   <span>{category.name}</span>
                   {category.subCategories.length > 0 && (
                     <ChevronRight
-                      className={`w-4 h-4 ${
-                        openSubMenu === index ? "rotate-90" : ""
-                      } transition-transform`}
+                      className={`w-4 h-4 ${openSubMenu === index ? "rotate-90" : ""
+                        } transition-transform`}
                     />
                   )}
                 </div>
-
-                {/* Danh mục con */}
                 {category.subCategories.length > 0 && openSubMenu === index && (
                   <ul className="ml-4 mt-2 space-y-2">
                     {category.subCategories.map((subCategory, subIndex) => (
@@ -194,8 +209,6 @@ const Header = () => {
           </ul>
         </div>
       </div>
-
-      {/* Overlay khi menu mở */}
       {isMenuOpen && (
         <div
           className="fixed top-0 left-0 w-full h-full bg-black opacity-50 z-10"
