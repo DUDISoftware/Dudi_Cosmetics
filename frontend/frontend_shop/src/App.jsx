@@ -10,7 +10,7 @@ import { CssBaseline, ThemeProvider } from '@mui/material';
 import { baselightTheme } from "./theme/DefaultColors";
 import FullLayout from './pages/Admin/layouts/FullLayout';
 import Dashboard from "./pages/Admin/dashboard/Dashboard";
-
+import SamplePage from "./pages/Admin/sample-page/SamplePage";
 const App = () => {
   const theme = baselightTheme;
 
