@@ -12,25 +12,25 @@ const Form = ({ isSignInPage = false }) => {
     ...(isSignInPage
       ? {}
       : {
-          fullname: "",
-          dateOfBirth: "",
-          phone: "",
-          address: "",
-          country: "",
-          city: "",
-          district: "",
-          gender: "", 
-        }),
+        fullname: "",
+        dateOfBirth: "",
+        phone: "",
+        address: "",
+        country: "",
+        city: "",
+        district: "",
+        gender: "",
+      }),
     email: "",
     password: "",
   });
   const handleSubmit = async (e) => {
     e.preventDefault();
-  
+
     const url = isSignInPage
       ? "http://localhost:5000/api/auth/login"
       : "http://localhost:5000/api/auth/register";
-  
+
     try {
       const res = await fetch(url, {
         method: "POST",
@@ -39,22 +39,22 @@ const Form = ({ isSignInPage = false }) => {
         },
         body: JSON.stringify(data),
       });
-  
+
       const result = await res.json();
-  
+
       if (!res.ok) {
         alert(result.message || "Đã xảy ra lỗi");
         return;
       }
-  
+
       if (isSignInPage) {
         localStorage.setItem("token", result.token);
-        localStorage.setItem("role", result.user.role); 
+        localStorage.setItem("role", result.user.role);
 
         if (result.user.role === "admin") {
-          navigate("/admin"); 
+          navigate("/admin");
         } else {
-          navigate("/"); 
+          navigate("/");
         }
       } else {
         alert("Đăng ký thành công! Bạn có thể đăng nhập");
@@ -65,15 +65,14 @@ const Form = ({ isSignInPage = false }) => {
       alert("Lỗi kết nối đến server");
     }
   };
-  
+
   return (
     <div className="h-screen w-full flex justify-center items-center bg-gray-100">
       <div className="w-full max-w-[1000px] h-[90vh] flex rounded-2xl overflow-hidden shadow-xl bg-white border border-gray-300">
-       
+
         <div
-          className={`flex flex-col justify-center items-center w-1/2 p-8 ${
-            !isSignInPage ? "order-2" : "order-1"
-          }`}
+          className={`flex flex-col justify-center items-center w-1/2 p-8 ${!isSignInPage ? "order-2" : "order-1"
+            }`}
         >
           <h1 className="text-2xl font-bold mb-2 text-red-700 text-center">
             CHÀO MỪNG {isSignInPage ? "QUAY LẠI" : "ĐẾN DUDI COSMETICS"}
@@ -86,7 +85,7 @@ const Form = ({ isSignInPage = false }) => {
             className="w-full max-w-[350px] space-y-4"
             onSubmit={handleSubmit}
           >
-          
+
             {!isSignInPage && (
               <>
                 <div className="w-full">
@@ -203,9 +202,8 @@ const Form = ({ isSignInPage = false }) => {
           </div>
         </div>
         <div
-          className={`w-1/2 flex justify-center items-center bg-gray-200 ${
-            !isSignInPage ? "order-1" : "order-2"
-          }`}
+          className={`w-1/2 flex justify-center items-center bg-gray-200 ${!isSignInPage ? "order-1" : "order-2"
+            }`}
         >
           <img
             src={isSignInPage ? loginImage : registerImage}
