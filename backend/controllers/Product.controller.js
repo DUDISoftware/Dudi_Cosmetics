@@ -143,3 +143,45 @@ exports.deleteProduct = async (req, res) => {
     });
   }
 };
+
+// Lấy sản phẩm hot
+exports.getHotProducts = async (req, res) => {
+  try {
+    const hotProducts = await productService.getHotProducts();
+    res.status(200).json({
+      status: true,
+      data: hotProducts,
+    });
+  } catch (error) {
+    console.error("Lỗi lấy sản phẩm hot:", error.message);
+    res.status(500).json({
+      status: false,
+      message: "Lỗi server",
+    });
+  }
+};
+
+// Tìm kiếm sản phẩm
+exports.searchProducts = async (req, res) => {
+  try {
+    const { query } = req.query;
+    if (!query) {
+      return res.status(400).json({
+        status: false,
+        message: "Từ khóa tìm kiếm không hợp lệ",
+      });
+    }
+
+    const products = await productService.searchProducts(query);
+    res.status(200).json({
+      status: true,
+      data: products,
+    });
+  } catch (error) {
+    console.error("Lỗi tìm kiếm sản phẩm:", error.message);
+    res.status(500).json({
+      status: false,
+      message: "Lỗi server",
+    });
+  }
+};
