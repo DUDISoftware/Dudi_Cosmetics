@@ -1,8 +1,9 @@
 const mongoose = require("mongoose");
+const uniqueValidator = require("mongoose-unique-validator");
 
 const productSchema = new mongoose.Schema({
   user_id: { type: mongoose.Schema.Types.ObjectId, ref: "User", required: true },
-  name: { type: String, required: true },
+  product_name: { type: String, unique: true, required: true },
   slug: { type: String, unique: true, required: true },
   short_description: String,
   long_description: String,
@@ -18,4 +19,5 @@ const productSchema = new mongoose.Schema({
   created_at: { type: Date, default: Date.now }
 });
 
+productSchema.plugin(uniqueValidator, { message: "{PATH} đã tồn tại." });
 module.exports = mongoose.model("Product", productSchema);

@@ -15,7 +15,7 @@ dotenv.config();
 app.use(cors()); // Cho phép CORS
 app.use(express.json()); // Parse JSON requests
 app.use(bodyParser.urlencoded({ extended: false })); // Parse URL-encoded bodies
-app.use(bodyParser.json()); // Parse JSON bodies
+app.use(express.json()); // Parse JSON requests
 
 // Cấu hình view engine
 app.set("view engine", "ejs");

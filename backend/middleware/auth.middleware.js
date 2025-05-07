@@ -15,7 +15,7 @@ exports.verifyToken = (req, res, next) => {
 
 exports.verifyAdmin = (req, res, next) => {
   if (req.user.role !== "admin") {
-    return res.status(403).json({ message: "Không có quyền truy cập" });
+    return res.status(403).json({ message: "Không có quyền Admin để truy cập " });
   }
   next();
 };

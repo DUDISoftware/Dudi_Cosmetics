@@ -1,45 +1,63 @@
 const Product = require('../models/Product.model');
+const ProductCategoryChild = require('../models/ProductCategoryChild.model');
+const ProductBrand = require('../models/ProductBrand.model');
+const User = require('../models/User.model');
 
-
-// PCChild 
-// PCParent 
-// PCReviews 
-// Lấy tất cả sản phẩm
-exports.getAllProducts = async (filters = {}) => {
+// Tạo sản phẩm mới
+exports.createProduct = async (productData) => {
   try {
-    return await Product.find(filters)
-      .populate('category_id', 'name')
-      .populate('brand_id', 'name')
-      .populate('user_id', 'name email');
+    // Kiểm tra category_id
+    const categoryExists = await ProductCategoryChild.findById(productData.category_id);
+    if (!categoryExists) {
+      throw new Error("category_id không tồn tại");
+    }
+
+    // Kiểm tra brand_id
+    const brandExists = await ProductBrand.findById(productData.brand_id);
+    if (!brandExists) {
+      throw new Error("brand_id không tồn tại");
+    }
+
+    // Kiểm tra user_id
+    const userExists = await User.findById(productData.user_id);
+    if (!userExists) {
+      throw new Error("user_id không tồn tại");
+    }
+
+    // Tạo sản phẩm
+    const product = new Product(productData);
+    return await product.save();
+  } catch (error) {
+    // Kiểm tra lỗi unique
+    if (error.name === "ValidationError") {
+      throw new Error(Object.values(error.errors).map(err => err.message).join(", "));
+    }
+    throw new Error("Lỗi khi tạo sản phẩm: " + error.message);
+  }
+};
+
+// Lấy tất cả sản phẩm
+exports.getAllProductsSv = async (filters = {}) => {
+  try {
+    return await Product.find(filters);
   } catch (error) {
     throw new Error("Lỗi khi lấy danh sách sản phẩm: " + error.message);
   }
 };
 
 // Lấy chi tiết sản phẩm
-exports.getProductById = async (id) => {
+exports.getProductByIdSv = async (id) => {
   try {
-    return await Product.findById(id)
-      .populate('category_id')
-      .populate('brand_id')
-      .populate('user_id');
+    return await Product.findById(id);
   } catch (error) {
     throw new Error("Lỗi khi lấy chi tiết sản phẩm: " + error.message);
   }
 };
 
-// Tạo sản phẩm mới
-exports.createProduct = async (productData) => {
-  try {
-    const product = new Product(productData);
-    return await product.save();
-  } catch (error) {
-    throw new Error("Lỗi khi tạo sản phẩm: " + error.message);
-  }
-};
+
 
 // Cập nhật sản phẩm
-exports.updateProduct = async (id, updateData) => {
+exports.updateProductSv = async (id, updateData) => {
   try {
     return await Product.findByIdAndUpdate(
       id,
@@ -52,36 +70,11 @@ exports.updateProduct = async (id, updateData) => {
 };
 
 // Xóa sản phẩm
-exports.deleteProduct = async (id) => {
+exports.deleteProductSv = async (id) => {
   try {
     return await Product.findByIdAndDelete(id);
   } catch (error) {
     throw new Error("Lỗi khi xóa sản phẩm: " + error.message);
-  }
-};
-
-// Lấy sản phẩm hot
-exports.getHotProducts = async () => {
-  try {
-    return await Product.find({ is_hot: true })
-      .populate('category_id')
-      .populate('brand_id');
-  } catch (error) {
-    throw new Error("Lỗi khi lấy sản phẩm hot: " + error.message);
-  }
-};
-
-// Tìm kiếm sản phẩm
-exports.searchProducts = async (query) => {
-  try {
-    return await Product.find({
-      $or: [
-        { name: { $regex: query, $options: 'i' } },
-        { short_description: { $regex: query, $options: 'i' } },
-      ],
-    }).populate('category_id brand_id');
-  } catch (error) {
-    throw new Error("Lỗi khi tìm kiếm sản phẩm: " + error.message);
   }
 };
 

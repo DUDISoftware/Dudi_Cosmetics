@@ -1,74 +1,45 @@
-const productService = require('../services/Product.service');
+const PCChildService = require('../services/ProductCategoryChild.service');
 
-// Lấy danh sách sản phẩm
-exports.getProducts = async (req, res) => {
+// Tạo danh mục con mới
+exports.createPCChild = async (req, res) => {
   try {
-    const filters = req.query || {};
-    const products = await productService.getAllProducts(filters);
-    res.status(200).json({
-      status: true,
-      data: products,
-    });
-  } catch (error) {
-    console.error("Lỗi lấy danh sách sản phẩm:", error.message);
-    res.status(500).json({
-      status: false,
-      message: "Lỗi server",
-    });
-  }
-};
+    const childData = req.body;
 
-// Lấy chi tiết sản phẩm
-exports.getProductById = async (req, res) => {
-  try {
-    const productId = req.params.id;
-    if (!productId) {
+    // Kiểm tra dữ liệu đầu vào
+    if (!childData || !childData.category_name || !childData.slug) {
       return res.status(400).json({
         status: false,
-        message: "ID sản phẩm không hợp lệ",
+        message: "Dữ liệu danh mục con không hợp lệ",
       });
     }
 
-    const product = await productService.getProductById(productId);
-    if (!product) {
-      return res.status(404).json({
-        status: false,
-        message: "Không tìm thấy sản phẩm",
-      });
-    }
-
-    res.status(200).json({
-      status: true,
-      data: product,
-    });
-  } catch (error) {
-    console.error("Lỗi lấy chi tiết sản phẩm:", error.message);
-    res.status(500).json({
-      status: false,
-      message: "Lỗi server",
-    });
-  }
-};
-
-// Tạo sản phẩm mới
-exports.createProduct = async (req, res) => {
-  try {
-    const productData = req.body;
-    if (!productData || !productData.name || !productData.category_id || !productData.brand_id) {
-      return res.status(400).json({
-        status: false,
-        message: "Dữ liệu sản phẩm không hợp lệ",
-      });
-    }
-
-    const newProduct = await productService.createProduct(productData);
+    // Gọi service để tạo danh mục con
+    const newChild = await PCChildService.createPCChildSv(childData);
     res.status(201).json({
       status: true,
-      message: "Tạo sản phẩm thành công",
-      data: newProduct,
+      message: "Tạo danh mục con thành công",
+      data: newChild,
     });
   } catch (error) {
-    console.error("Lỗi tạo sản phẩm:", error.message);
+    console.error("Lỗi tạo danh mục con:", error.message);
+    res.status(400).json({
+      status: false,
+      message: error.message, // Trả về lỗi chi tiết
+    });
+  }
+};
+
+// Lấy danh sách danh mục con
+exports.getAllPCChild = async (req, res) => {
+  try {
+    const filters = req.query || {};
+    const children = await PCChildService.getAllPCChildSv(filters);
+    res.status(200).json({
+      status: true,
+      data: children,
+    });
+  } catch (error) {
+    console.error("Lỗi lấy danh sách danh mục con:", error.message);
     res.status(500).json({
       status: false,
       message: "Lỗi server",
@@ -76,8 +47,41 @@ exports.createProduct = async (req, res) => {
   }
 };
 
-// Cập nhật sản phẩm
-exports.updateProduct = async (req, res) => {
+// Lấy chi tiết danh mục con
+exports.getPCChildById = async (req, res) => {
+  try {
+    const childId = req.params.id;
+
+    if (!childId) {
+      return res.status(400).json({
+        status: false,
+        message: "ID danh mục con không hợp lệ",
+      });
+    }
+
+    const child = await PCChildService.getPCChildByIdSv(childId);
+    if (!child) {
+      return res.status(404).json({
+        status: false,
+        message: "Không tìm thấy danh mục con",
+      });
+    }
+
+    res.status(200).json({
+      status: true,
+      data: child,
+    });
+  } catch (error) {
+    console.error("Lỗi lấy chi tiết danh mục con:", error.message);
+    res.status(500).json({
+      status: false,
+      message: "Lỗi server",
+    });
+  }
+};
+
+// Cập nhật danh mục con
+exports.updatePCChild = async (req, res) => {
   try {
     const { id } = req.params;
     const updateData = req.body;
@@ -89,54 +93,54 @@ exports.updateProduct = async (req, res) => {
       });
     }
 
-    const updatedProduct = await productService.updateProduct(id, updateData);
-    if (!updatedProduct) {
+    const updatedChild = await PCChildService.updatePCChildSv(id, updateData);
+    if (!updatedChild) {
       return res.status(404).json({
         status: false,
-        message: "Không tìm thấy sản phẩm",
+        message: "Không tìm thấy danh mục con",
       });
     }
 
     res.status(200).json({
       status: true,
-      message: "Cập nhật sản phẩm thành công",
-      data: updatedProduct,
+      message: "Cập nhật danh mục con thành công",
+      data: updatedChild,
     });
   } catch (error) {
-    console.error("Lỗi cập nhật sản phẩm:", error.message);
-    res.status(500).json({
+    console.error("Lỗi cập nhật danh mục con:", error.message);
+    res.status(400).json({
       status: false,
-      message: "Lỗi server",
+      message: error.message, // Trả về lỗi chi tiết
     });
   }
 };
 
-// Xóa sản phẩm
-exports.deleteProduct = async (req, res) => {
+// Xóa danh mục con
+exports.deletePCChild = async (req, res) => {
   try {
     const { id } = req.params;
 
     if (!id) {
       return res.status(400).json({
         status: false,
-        message: "ID sản phẩm không hợp lệ",
+        message: "ID danh mục con không hợp lệ",
       });
     }
 
-    const deletedProduct = await productService.deleteProduct(id);
-    if (!deletedProduct) {
+    const deletedChild = await PCChildService.deletePCChildSv(id);
+    if (!deletedChild) {
       return res.status(404).json({
         status: false,
-        message: "Không tìm thấy sản phẩm",
+        message: "Không tìm thấy danh mục con",
       });
     }
 
     res.status(200).json({
       status: true,
-      message: "Xóa sản phẩm thành công",
+      message: "Xóa danh mục con thành công",
     });
   } catch (error) {
-    console.error("Lỗi xóa sản phẩm:", error.message);
+    console.error("Lỗi xóa danh mục con:", error.message);
     res.status(500).json({
       status: false,
       message: "Lỗi server",

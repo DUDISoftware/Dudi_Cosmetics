@@ -22,9 +22,9 @@ exports.createProductBrand = async (req, res) => {
     });
   } catch (error) {
     console.error("Lỗi tạo thương hiệu sản phẩm:", error.message);
-    res.status(500).json({
+    res.status(400).json({
       status: false,
-      message: "Lỗi server",
+      message: error.message, // Trả về lỗi chi tiết
     });
   }
 };
@@ -80,7 +80,6 @@ exports.getProductBrandById = async (req, res) => {
   }
 };
 
-// Cập nhật thương hiệu sản phẩm
 exports.updateProductBrand = async (req, res) => {
   try {
     const { id } = req.params;
@@ -108,9 +107,9 @@ exports.updateProductBrand = async (req, res) => {
     });
   } catch (error) {
     console.error("Lỗi cập nhật thương hiệu sản phẩm:", error.message);
-    res.status(500).json({
+    res.status(400).json({
       status: false,
-      message: "Lỗi server",
+      message: error.message, // Trả về lỗi chi tiết
     });
   }
 };

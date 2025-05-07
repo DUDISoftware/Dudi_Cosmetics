@@ -4,9 +4,12 @@ const ProductBrand = require('../models/ProductBrand.model');
 exports.createProductBrand = async (brandData) => {
   try {
     const brand = new ProductBrand(brandData);
-      return await brand.save();
-    //Lỗi này sẽ xuất hiện trên terminal (hoặc log server) khi không được xử lý trong controller.
+    return await brand.save();
   } catch (error) {
+    // Kiểm tra lỗi unique
+    if (error.name === "ValidationError") {
+      throw new Error(Object.values(error.errors).map(err => err.message).join(", "));
+    }
     throw new Error("Lỗi khi tạo thương hiệu sản phẩm: " + error.message);
   }
 };

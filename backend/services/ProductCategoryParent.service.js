@@ -1,60 +1,55 @@
-const Product = require('../models/ProductCategoryParent.model');
+const ProductCategoryParent = require('../models/ProductCategoryParent.model');
 
-
-
-// Tạo ProductCategoryParent mới
-exports.createPCParent = async (productData) => {
+// Tạo danh mục sản phẩm cha mới
+exports.createPCParentSv = async (categoryData) => {
   try {
-    const product = new Product(productData);
-    return await product.save();
+    const category = new ProductCategoryParent(categoryData);
+    return await category.save();
   } catch (error) {
-    throw new Error("Lỗi khi tạo sản phẩm: " + error.message);
+    // Kiểm tra lỗi unique
+    if (error.name === "ValidationError") {
+      throw new Error(Object.values(error.errors).map(err => err.message).join(", "));
+    }
+    throw new Error("Lỗi khi tạo danh mục sản phẩm cha: " + error.message);
   }
 };
 
-// Lấy tất cả ProductCategoryParent
-exports.getAllPCParent = async (filters = {}) => {
+// Lấy tất cả danh mục sản phẩm cha
+exports.getAllPCParentSv = async (filters = {}) => {
   try {
-    return await Product.find(filters)
-      .populate('category_id', 'name')
-      .populate('brand_id', 'name')
-      .populate('user_id', 'name email');
+    return await ProductCategoryParent.find(filters);
   } catch (error) {
-    throw new Error("Lỗi khi lấy danh sách sản phẩm: " + error.message);
+    throw new Error("Lỗi khi lấy danh sách danh mục sản phẩm cha: " + error.message);
   }
 };
 
-// Lấy chi tiết ProductCategoryParent
-exports.getPCParentById = async (id) => {
+// Lấy chi tiết danh mục sản phẩm cha
+exports.getPCParentsvByIdSv = async (id) => {
   try {
-    return await Product.findById(id)
-      .populate('category_id')
-      .populate('brand_id')
-      .populate('user_id');
+    return await ProductCategoryParent.findById(id);
   } catch (error) {
-    throw new Error("Lỗi khi lấy chi tiết sản phẩm: " + error.message);
+    throw new Error("Lỗi khi lấy chi tiết danh mục sản phẩm cha: " + error.message);
   }
 };
 
-// Cập nhật ProductCategoryParent
-exports.updatePCParent = async (id, updateData) => {
+// Cập nhật danh mục sản phẩm cha
+exports.updatePCParentSv = async (id, updateData) => {
   try {
-    return await Product.findByIdAndUpdate(
+    return await ProductCategoryParent.findByIdAndUpdate(
       id,
       updateData,
       { new: true, runValidators: true }
     );
   } catch (error) {
-    throw new Error("Lỗi khi cập nhật sản phẩm: " + error.message);
+    throw new Error("Lỗi khi cập nhật danh mục sản phẩm cha: " + error.message);
   }
 };
 
-// Xóa sản ProductCategoryParent
-exports.deletePCParent = async (id) => {
+// Xóa danh mục sản phẩm cha
+exports.deletePCParentSv = async (id) => {
   try {
-    return await Product.findByIdAndDelete(id);
+    return await ProductCategoryParent.findByIdAndDelete(id);
   } catch (error) {
-    throw new Error("Lỗi khi xóa sản phẩm: " + error.message);
+    throw new Error("Lỗi khi xóa danh mục sản phẩm cha: " + error.message);
   }
 };
-
