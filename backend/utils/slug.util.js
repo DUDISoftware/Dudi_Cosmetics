@@ -15,6 +15,6 @@ const toSlug = (title) => {
       .replace(/[^a-z0-9\s]/g, "") // Loại bỏ ký tự đặc biệt
       .replace(/\s+/g, "-") // Thay thế khoảng trắng bằng dấu "-"
       .trim();
-  };
+  }; 
   
   module.exports = toSlug;
