@@ -24,7 +24,7 @@ exports.createProductBrand = async (req, res) => {
     console.error("Lỗi tạo thương hiệu sản phẩm:", error.message);
     res.status(400).json({
       status: false,
-      message: error.message, // Trả về lỗi chi tiết
+       message: `Lỗi tạo thương hiệu sản phẩm: ${error.message}`,  // Trả về lỗi chi tiết
     });
   }
 };

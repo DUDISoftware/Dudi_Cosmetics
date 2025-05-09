@@ -24,7 +24,7 @@ exports.createProduct = async (req, res) => {
     console.error("Lỗi tạo sản phẩm:", error.message);
     res.status(400).json({
       status: false,
-      message: error.message, // Trả về lỗi chi tiết
+      message: `Lỗi tạo sản phẩm: ${error.message}`,  // Trả về lỗi chi tiết
     });
   }
 };

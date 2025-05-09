@@ -29,7 +29,7 @@ exports.createPost = async (req, res) => {
     console.error("Lỗi tạo bài viết:", error.message);
     res.status(500).json({
       status: false,
-      message: "Lỗi server",
+      message: `Lỗi tạo bài viết: ${error.message}`, 
     });
   }
 };
