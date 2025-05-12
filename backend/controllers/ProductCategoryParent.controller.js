@@ -24,7 +24,7 @@ exports.createPCParent = async (req, res) => {
     console.error("Lỗi tạo danh mục sản phẩm cha:", error.message);
     res.status(400).json({
       status: false,
-      message: error.message, // Trả về lỗi chi tiết
+     message: `Lỗi tạo danh mục sản phẩm cha: ${error.message}`,  // Trả về lỗi chi tiết
     });
   }
 };

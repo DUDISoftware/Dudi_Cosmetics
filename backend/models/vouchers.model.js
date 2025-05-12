@@ -1,4 +1,5 @@
 const mongoose = require("mongoose");
+const uniqueValidator = require("mongoose-unique-validator");
 
 const voucherSchema = new mongoose.Schema({
   code: { type: String, unique: true, required: true },
@@ -10,4 +11,5 @@ const voucherSchema = new mongoose.Schema({
   max_discount_amount: Number
 });
 
+voucherSchema.plugin(uniqueValidator, { message: "{PATH} đã tồn tại." });
 module.exports = mongoose.model("Voucher", voucherSchema);
