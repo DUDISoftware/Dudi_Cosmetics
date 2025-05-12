@@ -33,17 +33,17 @@ router.put("/users/update-user/:id", verifyToken, updateUser);
 router.delete("/users/delete-user/:id", verifyToken, verifyAdmin, deleteUser);
 
 // Product routes
-router.post("/product/add-product", verifyToken, verifyAdmin, createProduct);
+router.post("/product/add-product", verifyToken, verifyAdmin, uploadImage.single('image'), createProduct);
 router.get("/Product/products-list", getAllProducts);
 router.get("/Product/products-detail/:id", getProductById);
-router.put("/Product/products/:id", verifyToken, verifyAdmin, updateProduct);
+router.put("/Product/products/:id", verifyToken, verifyAdmin, uploadImage.single('image'), updateProduct);
 router.delete("/Product/products/:id", verifyToken, verifyAdmin, deleteProduct);
 
 // ProductBrand routes
-router.post("/ProductBrand/add-ProductBrand", verifyToken, verifyAdmin, createProductBrand);
+router.post("/ProductBrand/add-ProductBrand", verifyToken, verifyAdmin, uploadImage.single('image'), createProductBrand);
 router.get("/ProductBrand/ProductBrand-list", getAllProductBrands);
 router.get("/ProductBrand/ProductBrand-detail/:id", getProductBrandById);
-router.put("/ProductBrand/update-ProductBrand/:id", verifyToken, verifyAdmin, updateProductBrand);
+router.put("/ProductBrand/update-ProductBrand/:id", verifyToken, verifyAdmin, uploadImage.single('image'), updateProductBrand);
 router.delete("/ProductBrand/delete-ProductBrand/:id", verifyToken, verifyAdmin, deleteProductBrand);
 
 // ProductCategoryParent routes
@@ -68,10 +68,10 @@ router.put("/PostsCategory/update-PostsCategory/:id", verifyToken, verifyAdmin, 
 router.delete("/PostsCategory/delete-PostsCategory/:id", verifyToken, verifyAdmin, deleteCategoryPost);
 
 // Posts routes
-router.post("/Posts/add-Posts", verifyToken, verifyAdmin, createPost);
+router.post("/Posts/add-Posts", verifyToken, verifyAdmin, uploadImage.single('image'), createPost);
 router.get("/Posts/Posts-list", getAllPost);
 router.get("/Posts/Posts-detail/:id", getPostSById);
-router.put("/Posts/update-Posts/:id", verifyToken, verifyAdmin, updatePost);
+router.put("/Posts/update-Posts/:id", verifyToken, verifyAdmin, uploadImage.single('image'), updatePost);
 router.delete("/Posts/delete-Posts/:id", verifyToken, verifyAdmin, deletePost);
 
 // Banners routes

@@ -1,20 +1,25 @@
 const PostsService = require('../services/Posts.service');
+const toSlug = require('../utils/slug.util'); // Import hàm toSlug
 
 // Tạo bài viết mới
 exports.createPost = async (req, res) => {
   try {
     const postData = req.body;
+    const file = req.file; // Lấy file từ request (sử dụng Multer)
 
     // Kiểm tra dữ liệu đầu vào
-    if (!postData || !postData.title || !postData.slug) {
+    if (!postData || !postData.title || !file) {
       return res.status(400).json({
         status: false,
-        message: "Dữ liệu bài viết không hợp lệ",
+        message: "Dữ liệu bài viết không hợp lệ hoặc thiếu file ảnh",
       });
     }
 
+    // Tạo slug từ title
+    postData.slug = toSlug(postData.title);
+
     // Gọi service để tạo bài viết mới
-    const result = await PostsService.createPostSv(postData);
+    const result = await PostsService.createPostSv(postData, file);
 
     if (!result.status) {
       return res.status(400).json(result); // Trả về lỗi từ service
@@ -29,7 +34,48 @@ exports.createPost = async (req, res) => {
     console.error("Lỗi tạo bài viết:", error.message);
     res.status(500).json({
       status: false,
-      message: `Lỗi tạo bài viết: ${error.message}`, 
+      message: `Lỗi tạo bài viết: ${error.message}`,
+    });
+  }
+};
+
+// Cập nhật bài viết
+exports.updatePost = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const updateData = req.body;
+    const file = req.file; // Lấy file từ request (sử dụng Multer)
+
+    if (!id || !updateData) {
+      return res.status(400).json({
+        status: false,
+        message: "Dữ liệu cập nhật không hợp lệ",
+      });
+    }
+
+    // Tạo slug từ title nếu có cập nhật title
+    if (updateData.title) {
+      updateData.slug = toSlug(updateData.title);
+    }
+
+    const updatedPost = await PostsService.updatePostSv(id, updateData, file);
+    if (!updatedPost) {
+      return res.status(404).json({
+        status: false,
+        message: "Không tìm thấy bài viết",
+      });
+    }
+
+    res.status(200).json({
+      status: true,
+      message: "Cập nhật bài viết thành công",
+      data: updatedPost,
+    });
+  } catch (error) {
+    console.error("Lỗi cập nhật bài viết:", error.message);
+    res.status(500).json({
+      status: false,
+      message: `Lỗi cập nhật bài viết: ${error.message}`,
     });
   }
 };
@@ -38,10 +84,10 @@ exports.createPost = async (req, res) => {
 exports.getAllPost = async (req, res) => {
   try {
     const filters = req.query || {};
-    const newCategory = await PostsService.getAllPostSv(filters);
+    const posts = await PostsService.getAllPostSv(filters);
     res.status(200).json({
       status: true,
-      data: newCategory,
+      data: posts,
     });
   } catch (error) {
     console.error("Lỗi lấy danh sách bài viết:", error.message);
@@ -85,39 +131,7 @@ exports.getPostSById = async (req, res) => {
   }
 };
 
-exports.updatePost = async (req, res) => {
-  try {
-    const { id } = req.params;
-    const updateData = req.body;
 
-    if (!id || !updateData) {
-      return res.status(400).json({
-        status: false,
-        message: "Dữ liệu cập nhật không hợp lệ",
-      });
-    }
-
-    const updatedposts = await PostsService.updatePostSv(id, updateData);
-    if (!updatedposts) {
-      return res.status(404).json({
-        status: false,
-        message: "Không tìm thấy bài viết",
-      });
-    }
-
-    res.status(200).json({
-      status: true,
-      message: "Cập nhật bài viết thành công",
-      data: updatedposts,
-    });
-  } catch (error) {
-    console.error("Lỗi cập nhật bài viết:", error.message);
-    res.status(400).json({
-      status: false,
-      message: error.message, // Trả về lỗi chi tiết
-    });
-  }
-};
 
 // Xóa bài viết
 exports.deletePost = async (req, res) => {
@@ -131,8 +145,8 @@ exports.deletePost = async (req, res) => {
       });
     }
 
-    const deletedPos = await PostsService.deletePostSv(id);
-    if (!deletedPos) {
+    const deletedPost = await PostsService.deletePostSv(id);
+    if (!deletedPost) {
       return res.status(404).json({
         status: false,
         message: "Không tìm thấy bài viết",
@@ -147,7 +161,7 @@ exports.deletePost = async (req, res) => {
     console.error("Lỗi xóa bài viết:", error.message);
     res.status(500).json({
       status: false,
-      message: "Lỗi server",
+      message: `Lỗi xóa bài viết: ${error.message}`,
     });
   }
 };
