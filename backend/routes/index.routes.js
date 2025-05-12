@@ -1,5 +1,6 @@
 const express = require("express");
 const router = express.Router();
+const { uploadImage } = require('../utils/cloudinary.util'); // Multer cấu hình cho Cloudinary
 const { register, login, getAllUsers, getUserById, updateUser, deleteUser
 } = require("../controllers/user.controller.js");
 const { verifyToken, verifyAdmin
@@ -74,7 +75,7 @@ router.put("/Posts/update-Posts/:id", verifyToken, verifyAdmin, updatePost);
 router.delete("/Posts/delete-Posts/:id", verifyToken, verifyAdmin, deletePost);
 
 // Banners routes
-router.post("/Banners/add-Banners", verifyToken, verifyAdmin, createBanner);
+router.post("/Banners/add-Banners", verifyToken, verifyAdmin, uploadImage.single('image'), createBanner);
 router.get("/Banners/Banners-list", getAllBanners);
 router.get("/Banners/Banners-detail/:id", getBannerById);
 router.put("/Banners/update-Banners/:id", verifyToken, verifyAdmin, updateBanner);

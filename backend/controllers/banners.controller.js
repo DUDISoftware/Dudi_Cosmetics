@@ -4,17 +4,18 @@ const BannersService = require('../services/banners.service');
 exports.createBanner = async (req, res) => {
   try {
     const bannerData = req.body;
+    const file = req.file; // Lấy file từ request (sử dụng Multer)
 
     // Kiểm tra dữ liệu đầu vào
-    if (!bannerData || !bannerData.title || !bannerData.image) {
+    if (!bannerData || !bannerData.title || !file) {
       return res.status(400).json({
         status: false,
-        message: "Dữ liệu banner không hợp lệ",
+        message: "Dữ liệu banner không hợp lệ hoặc thiếu file ảnh",
       });
     }
 
     // Gọi service để tạo banner mới
-    const newBanner = await BannersService.createBannerSv(bannerData);
+    const newBanner = await BannersService.createBannerSv(bannerData, file); // Truyền file vào service
     res.status(201).json({
       status: true,
       message: "Tạo banner thành công",
@@ -24,7 +25,7 @@ exports.createBanner = async (req, res) => {
     console.error("Lỗi tạo banner:", error.message);
     res.status(400).json({
       status: false,
-      message: `Lỗi tạo banner: ${error.message}`, 
+      message: `Lỗi tạo banner: ${error.message}`,
     });
   }
 };
@@ -66,7 +67,6 @@ exports.getBannerById = async (req, res) => {
         message: "Không tìm thấy banner",
       });
     }
-
     res.status(200).json({
       status: true,
       data: banner,
@@ -85,6 +85,7 @@ exports.updateBanner = async (req, res) => {
   try {
     const { id } = req.params;
     const updateData = req.body;
+    const file = req.file; // Lấy file từ request (sử dụng Multer)
 
     if (!id || !updateData) {
       return res.status(400).json({
@@ -93,7 +94,7 @@ exports.updateBanner = async (req, res) => {
       });
     }
 
-    const updatedBanner = await BannersService.updateBannerSv(id, updateData);
+    const updatedBanner = await BannersService.updateBannerSv(id, updateData, file);
     if (!updatedBanner) {
       return res.status(404).json({
         status: false,
