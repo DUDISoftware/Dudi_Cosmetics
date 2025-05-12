@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import Input from "../../components/input/Input";
 import Button from "../../components/Button/Button";
-import registerImage from "../../assets/images/sp3.png";
+import registerImage from "../../../../public/login.png";
 import { useNavigate } from "react-router-dom";
 
 const Register = () => {
@@ -142,7 +142,7 @@ const Register = () => {
                         Đã có tài khoản? Đăng nhập ngay
                     </div>
                 </div>
-                <div className="w-1/2 flex justify-center items-center bg-gray-200 order-1">
+                <div className="w-1/2 flex justify-center items-center bg-[#FFEDE1] order-1">
                     <img
                         src={registerImage}
                         alt="Register"
