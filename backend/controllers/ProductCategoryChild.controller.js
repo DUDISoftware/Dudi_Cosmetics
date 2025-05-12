@@ -1,4 +1,5 @@
 const PCChildService = require('../services/ProductCategoryChild.service');
+const toSlug = require('../utils/slug.util'); // Import hàm toSlug
 
 // Tạo danh mục con mới
 exports.createPCChild = async (req, res) => {
@@ -6,12 +7,15 @@ exports.createPCChild = async (req, res) => {
     const childData = req.body;
 
     // Kiểm tra dữ liệu đầu vào
-    if (!childData || !childData.category_name || !childData.slug) {
+    if (!childData || !childData.category_name) {
       return res.status(400).json({
         status: false,
         message: "Dữ liệu danh mục con không hợp lệ",
       });
     }
+
+    // Tạo slug từ category_name
+    childData.slug = toSlug(childData.category_name);
 
     // Gọi service để tạo danh mục con
     const newChild = await PCChildService.createPCChildSv(childData);
@@ -24,7 +28,47 @@ exports.createPCChild = async (req, res) => {
     console.error("Lỗi tạo danh mục con:", error.message);
     res.status(400).json({
       status: false,
-      message: `Lỗi tạo danh mục con: ${error.message}`,  // Trả về lỗi chi tiết
+      message: `Lỗi tạo danh mục con: ${error.message}`, // Trả về lỗi chi tiết
+    });
+  }
+};
+
+// Cập nhật danh mục con
+exports.updatePCChild = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const updateData = req.body;
+
+    if (!id || !updateData) {
+      return res.status(400).json({
+        status: false,
+        message: "Dữ liệu cập nhật không hợp lệ",
+      });
+    }
+
+    // Tạo slug từ category_name nếu có cập nhật category_name
+    if (updateData.category_name) {
+      updateData.slug = toSlug(updateData.category_name);
+    }
+
+    const updatedChild = await PCChildService.updatePCChildSv(id, updateData);
+    if (!updatedChild) {
+      return res.status(404).json({
+        status: false,
+        message: "Không tìm thấy danh mục con",
+      });
+    }
+
+    res.status(200).json({
+      status: true,
+      message: "Cập nhật danh mục con thành công",
+      data: updatedChild,
+    });
+  } catch (error) {
+    console.error("Lỗi cập nhật danh mục con:", error.message);
+    res.status(400).json({
+      status: false,
+      message: error.message, // Trả về lỗi chi tiết
     });
   }
 };
@@ -80,40 +124,6 @@ exports.getPCChildById = async (req, res) => {
   }
 };
 
-// Cập nhật danh mục con
-exports.updatePCChild = async (req, res) => {
-  try {
-    const { id } = req.params;
-    const updateData = req.body;
-
-    if (!id || !updateData) {
-      return res.status(400).json({
-        status: false,
-        message: "Dữ liệu cập nhật không hợp lệ",
-      });
-    }
-
-    const updatedChild = await PCChildService.updatePCChildSv(id, updateData);
-    if (!updatedChild) {
-      return res.status(404).json({
-        status: false,
-        message: "Không tìm thấy danh mục con",
-      });
-    }
-
-    res.status(200).json({
-      status: true,
-      message: "Cập nhật danh mục con thành công",
-      data: updatedChild,
-    });
-  } catch (error) {
-    console.error("Lỗi cập nhật danh mục con:", error.message);
-    res.status(400).json({
-      status: false,
-      message: error.message, // Trả về lỗi chi tiết
-    });
-  }
-};
 
 // Xóa danh mục con
 exports.deletePCChild = async (req, res) => {

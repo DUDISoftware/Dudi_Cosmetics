@@ -1,4 +1,5 @@
 const CategoryPostService = require('../services/PostCategory.service');
+const toSlug = require('../utils/slug.util'); // Import hàm toSlug
 
 // Tạo loại bài viết mới
 exports.createCategoryPost = async (req, res) => {
@@ -6,14 +7,17 @@ exports.createCategoryPost = async (req, res) => {
     const categoryData = req.body;
 
     // Kiểm tra dữ liệu đầu vào
-    if (!categoryData || !categoryData.title || !categoryData.slug) {
+    if (!categoryData || !categoryData.title) {
       return res.status(400).json({
         status: false,
-        message: "Thuộc tính Dữ liệu loại bài viết mới không hợp lệ",
+        message: "Dữ liệu loại bài viết không hợp lệ",
       });
     }
 
-    // Gọi service để tạo  loại bài viết mới
+    // Tạo slug từ title
+    categoryData.slug = toSlug(categoryData.title);
+
+    // Gọi service để tạo loại bài viết mới
     const newCategory = await CategoryPostService.createCategoryPostSv(categoryData);
     res.status(201).json({
       status: true,
@@ -24,7 +28,47 @@ exports.createCategoryPost = async (req, res) => {
     console.error("Lỗi tạo loại bài viết:", error.message);
     res.status(400).json({
       status: false,
-      message: error.message, // Trả về lỗi chi tiết
+      message: `Lỗi tạo loại bài viết: ${error.message}`, // Trả về lỗi chi tiết
+    });
+  }
+};
+
+// Cập nhật loại bài viết
+exports.updateCategoryPost = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const updateData = req.body;
+
+    if (!id || !updateData) {
+      return res.status(400).json({
+        status: false,
+        message: "Dữ liệu cập nhật không hợp lệ",
+      });
+    }
+
+    // Tạo slug từ title nếu có cập nhật title
+    if (updateData.title) {
+      updateData.slug = toSlug(updateData.title);
+    }
+
+    const updatedCategory = await CategoryPostService.updateCategoryPostSv(id, updateData);
+    if (!updatedCategory) {
+      return res.status(404).json({
+        status: false,
+        message: "Không tìm thấy loại bài viết",
+      });
+    }
+
+    res.status(200).json({
+      status: true,
+      message: "Cập nhật loại bài viết thành công",
+      data: updatedCategory,
+    });
+  } catch (error) {
+    console.error("Lỗi cập nhật loại bài viết:", error.message);
+    res.status(400).json({
+      status: false,
+      message: `Lỗi cập nhật loại bài viết: ${error.message}`, // Trả về lỗi chi tiết
     });
   }
 };
@@ -76,40 +120,6 @@ exports.getCategoryPostSById = async (req, res) => {
     res.status(500).json({
       status: false,
       message: "Lỗi server",
-    });
-  }
-};
-
-exports.updateCategoryPost = async (req, res) => {
-  try {
-    const { id } = req.params;
-    const updateData = req.body;
-
-    if (!id || !updateData) {
-      return res.status(400).json({
-        status: false,
-        message: "Dữ liệu cập nhật không hợp lệ",
-      });
-    }
-
-    const updatedBrand = await CategoryPostService.updateCategoryPostSv(id, updateData);
-    if (!updatedBrand) {
-      return res.status(404).json({
-        status: false,
-        message: "Không tìm thấy loại bài viết",
-      });
-    }
-
-    res.status(200).json({
-      status: true,
-      message: "Cập nhật loại bài viết thành công",
-      data: updatedBrand,
-    });
-  } catch (error) {
-    console.error("Lỗi cập nhật loại bài viết:", error.message);
-    res.status(400).json({
-      status: false,
-      message: error.message, // Trả về lỗi chi tiết
     });
   }
 };

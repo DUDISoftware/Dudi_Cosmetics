@@ -1,20 +1,25 @@
 const productBrandService = require('../services/ProductBrand.service');
+const toSlug = require('../utils/slug.util'); // Import hàm toSlug
 
 // Tạo thương hiệu sản phẩm mới
 exports.createProductBrand = async (req, res) => {
   try {
     const brandData = req.body;
+    const file = req.file; // Lấy file từ request (sử dụng Multer)
 
     // Kiểm tra dữ liệu đầu vào
-    if (!brandData || !brandData.Brand_name || !brandData.slug) {
+    if (!brandData || !brandData.Brand_name || !file) {
       return res.status(400).json({
         status: false,
-        message: "Dữ liệu thương hiệu không hợp lệ",
+        message: "Dữ liệu thương hiệu không hợp lệ hoặc thiếu file ảnh",
       });
     }
 
+    // Tạo slug từ Brand_name
+    brandData.slug = toSlug(brandData.Brand_name);
+
     // Gọi service để tạo thương hiệu
-    const newBrand = await productBrandService.createProductBrand(brandData);
+    const newBrand = await productBrandService.createProductBrandSv(brandData, file);
     res.status(201).json({
       status: true,
       message: "Tạo thương hiệu sản phẩm thành công",
@@ -24,7 +29,81 @@ exports.createProductBrand = async (req, res) => {
     console.error("Lỗi tạo thương hiệu sản phẩm:", error.message);
     res.status(400).json({
       status: false,
-       message: `Lỗi tạo thương hiệu sản phẩm: ${error.message}`,  // Trả về lỗi chi tiết
+      message: `Lỗi tạo thương hiệu sản phẩm: ${error.message}`,
+    });
+  }
+};
+
+// Cập nhật thương hiệu sản phẩm
+exports.updateProductBrand = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const updateData = req.body;
+    const file = req.file; // Lấy file từ request (sử dụng Multer)
+
+    if (!id || !updateData) {
+      return res.status(400).json({
+        status: false,
+        message: "Dữ liệu cập nhật không hợp lệ",
+      });
+    }
+
+    // Tạo slug từ Brand_name nếu có cập nhật Brand_name
+    if (updateData.Brand_name) {
+      updateData.slug = toSlug(updateData.Brand_name);
+    }
+
+    const updatedBrand = await productBrandService.updateProductBrandSv(id, updateData, file);
+    if (!updatedBrand) {
+      return res.status(404).json({
+        status: false,
+        message: "Không tìm thấy thương hiệu sản phẩm",
+      });
+    }
+
+    res.status(200).json({
+      status: true,
+      message: "Cập nhật thương hiệu sản phẩm thành công",
+      data: updatedBrand,
+    });
+  } catch (error) {
+    console.error("Lỗi cập nhật thương hiệu sản phẩm:", error.message);
+    res.status(500).json({
+      status: false,
+      message: `Lỗi cập nhật thương hiệu sản phẩm: ${error.message}`,
+    });
+  }
+};
+
+// Xóa thương hiệu sản phẩm
+exports.deleteProductBrand = async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    if (!id) {
+      return res.status(400).json({
+        status: false,
+        message: "ID thương hiệu không hợp lệ",
+      });
+    }
+
+    const deletedBrand = await productBrandService.deleteProductBrandSv(id);
+    if (!deletedBrand) {
+      return res.status(404).json({
+        status: false,
+        message: "Không tìm thấy thương hiệu sản phẩm",
+      });
+    }
+
+    res.status(200).json({
+      status: true,
+      message: "Xóa thương hiệu sản phẩm thành công",
+    });
+  } catch (error) {
+    console.error("Lỗi xóa thương hiệu sản phẩm:", error.message);
+    res.status(500).json({
+      status: false,
+      message: `Lỗi xóa thương hiệu sản phẩm: ${error.message}`,
     });
   }
 };
@@ -33,7 +112,7 @@ exports.createProductBrand = async (req, res) => {
 exports.getAllProductBrands = async (req, res) => {
   try {
     const filters = req.query || {};
-    const brands = await productBrandService.getAllProductBrands(filters);
+    const brands = await productBrandService.getAllProductBrandSv(filters);
     res.status(200).json({
       status: true,
       data: brands,
@@ -59,7 +138,7 @@ exports.getProductBrandById = async (req, res) => {
       });
     }
 
-    const brand = await productBrandService.getProductBrandById(brandId);
+    const brand = await productBrandService.getProductBrandByIdSv(brandId);
     if (!brand) {
       return res.status(404).json({
         status: false,
@@ -80,69 +159,3 @@ exports.getProductBrandById = async (req, res) => {
   }
 };
 
-exports.updateProductBrand = async (req, res) => {
-  try {
-    const { id } = req.params;
-    const updateData = req.body;
-
-    if (!id || !updateData) {
-      return res.status(400).json({
-        status: false,
-        message: "Dữ liệu cập nhật không hợp lệ",
-      });
-    }
-
-    const updatedBrand = await productBrandService.updateProductBrand(id, updateData);
-    if (!updatedBrand) {
-      return res.status(404).json({
-        status: false,
-        message: "Không tìm thấy thương hiệu sản phẩm",
-      });
-    }
-
-    res.status(200).json({
-      status: true,
-      message: "Cập nhật thương hiệu sản phẩm thành công",
-      data: updatedBrand,
-    });
-  } catch (error) {
-    console.error("Lỗi cập nhật thương hiệu sản phẩm:", error.message);
-    res.status(400).json({
-      status: false,
-      message: error.message, // Trả về lỗi chi tiết
-    });
-  }
-};
-
-// Xóa thương hiệu sản phẩm
-exports.deleteProductBrand = async (req, res) => {
-  try {
-    const { id } = req.params;
-
-    if (!id) {
-      return res.status(400).json({
-        status: false,
-        message: "ID thương hiệu không hợp lệ",
-      });
-    }
-
-    const deletedBrand = await productBrandService.deleteProductBrand(id);
-    if (!deletedBrand) {
-      return res.status(404).json({
-        status: false,
-        message: "Không tìm thấy thương hiệu sản phẩm",
-      });
-    }
-
-    res.status(200).json({
-      status: true,
-      message: "Xóa thương hiệu sản phẩm thành công",
-    });
-  } catch (error) {
-    console.error("Lỗi xóa thương hiệu sản phẩm:", error.message);
-    res.status(500).json({
-      status: false,
-      message: "Lỗi server",
-    });
-  }
-};

@@ -87,6 +87,10 @@ exports.updateBanner = async (req, res) => {
     const updateData = req.body;
     const file = req.file; // Lấy file từ request (sử dụng Multer)
 
+    console.log("ID nhận được:", id);
+    console.log("Dữ liệu cập nhật nhận được:", updateData);
+    console.log("File nhận được:", file);
+
     if (!id || !updateData) {
       return res.status(400).json({
         status: false,
@@ -144,7 +148,7 @@ exports.deleteBanner = async (req, res) => {
     console.error("Lỗi xóa banner:", error.message);
     res.status(500).json({
       status: false,
-      message: "Lỗi server",
+      message: "Lỗi server: " + error.message,
     });
   }
 };
