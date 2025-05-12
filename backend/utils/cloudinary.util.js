@@ -29,7 +29,9 @@ const updateImageOnCloudinary = async (oldPublicId, newFilePath, folder = 'image
     try {
         // Xóa ảnh cũ
         if (oldPublicId) {
-            await cloudinary.uploader.destroy(oldPublicId);
+            console.log("Public ID của ảnh cũ:", oldPublicId);
+            const result = await cloudinary.uploader.destroy(oldPublicId, { invalidate: true });
+            console.log("Kết quả xóa ảnh:", result);
         }
 
         // Tải ảnh mới lên

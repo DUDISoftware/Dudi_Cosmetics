@@ -78,7 +78,7 @@ router.delete("/Posts/delete-Posts/:id", verifyToken, verifyAdmin, deletePost);
 router.post("/Banners/add-Banners", verifyToken, verifyAdmin, uploadImage.single('image'), createBanner);
 router.get("/Banners/Banners-list", getAllBanners);
 router.get("/Banners/Banners-detail/:id", getBannerById);
-router.put("/Banners/update-Banners/:id", verifyToken, verifyAdmin, updateBanner);
+router.put("/Banners/update-Banners/:id", verifyToken, verifyAdmin, uploadImage.single('image'), updateBanner);
 router.delete("/Banners/delete-Banners/:id", verifyToken, verifyAdmin, deleteBanner);
 
 // Vouchers routes

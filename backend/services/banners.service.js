@@ -59,8 +59,12 @@ exports.updateBannerSv = async (id, updateData, file) => {
 
     // Nếu có file mới, xử lý cập nhật ảnh
     if (file && file.path) {
+      // Lấy Public ID từ URL ảnh cũ
+      const oldPublicId = banner.image.replace(/^.*\/upload\/(?:v\d+\/)?/, '').replace(/\.[^/.]+$/, '');
+      console.log("Public ID của ảnh cũ:", oldPublicId);
+
       const uploadResult = await updateImageOnCloudinary(
-        banner.image, // Public ID của ảnh cũ
+        oldPublicId,  // Public ID của ảnh cũ
         file.path,    // Đường dẫn file mới
         'banners'     // Thư mục trên Cloudinary
       );
@@ -76,6 +80,20 @@ exports.updateBannerSv = async (id, updateData, file) => {
 // Xóa banner
 exports.deleteBannerSv = async (id) => {
   try {
+    const banner = await Banner.findById(id);
+    if (!banner) {
+      throw new Error("Không tìm thấy banner");
+    }
+
+    // Lấy Public ID từ URL ảnh
+    const oldPublicId = banner.image.replace(/^.*\/upload\/(?:v\d+\/)?/, '').replace(/\.[^/.]+$/, '');
+    console.log("Public ID của ảnh cần xóa:", oldPublicId);
+
+    // Xóa ảnh trên Cloudinary
+    const result = await cloudinary.uploader.destroy(oldPublicId, { invalidate: true });
+    console.log("Kết quả xóa ảnh trên Cloudinary:", result);
+
+    // Xóa banner trong cơ sở dữ liệu
     return await Banner.findByIdAndDelete(id);
   } catch (error) {
     throw new Error("Lỗi khi xóa banner: " + error.message);
