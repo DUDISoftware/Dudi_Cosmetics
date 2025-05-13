@@ -1,20 +1,10 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import Header from "../../components/Header";
 import Footer from "../../components/Footer";
-import ProductDetailInfo from '../Product/ProductDetailInfo'
-import { Link } from "react-router-dom";
+import { Link, useParams } from "react-router-dom";
 import { ArrowRightIcon, SlidersHorizontal } from "lucide-react";
-import {
-  FaHeart,
-  FaShoppingCart,
-} from "react-icons/fa";
-import { useState } from "react";
-
-// Product Images
-import SP1 from "../../assets/images/sp1.png";
-import SP2 from "../../assets/images/sp2.png";
-import SP3 from "../../assets/images/sp3.png";
-import SP4 from "../../assets/images/sp4.png";
+import { FaHeart, FaShoppingCart, FaStar } from "react-icons/fa";
+import { getProductById } from "../../../api/productsApi";
 import ProposalProduct from "../../components/ProposalProduct";
 
 const brandLogos = [
@@ -27,179 +17,50 @@ const brandLogos = [
   { name: "Gucci", src: "/brands/gucci.png" },
 ];
 
-const products = [
-  {
-    id: 1,
-    name: "CHANEL RED CAMELLIA SERUM DUO",
-    price: 20,
-    oldPrice: null,
-    tag: "New",
-    image: SP1,
-  },
-  {
-    id: 2,
-    name: "CHANEL SERUM DUO",
-    price: 20,
-    oldPrice: 30,
-    tag: "Sales",
-    image: SP2,
-  },
-  {
-    id: 3,
-    name: "REVITALIZING SERUM",
-    price: 20,
-    tag: null,
-    image: SP3,
-  },
-  {
-    id: 4,
-    name: "Library Stool Chair",
-    price: 20,
-    tag: null,
-    image: SP4,
-  },
-  {
-    id: 5,
-    name: "Chair Wooden Brown",
-    price: 70,
-    tag: null,
-    image: SP1,
-  },
-  {
-    id: 6,
-    name: "Gucci Flora Perfume",
-    price: 90,
-    tag: "New",
-    image: SP2,
-  },
-  {
-    id: 7,
-    name: "Vichy Night Cream",
-    price: 45,
-    tag: null,
-    image: SP3,
-  },
-  {
-    id: 8,
-    name: "Olay Face Wash",
-    price: 15,
-    tag: "Sales",
-    image: SP4,
-  },
-  {
-    id: 9,
-    name: "Biore Cleansing Foam",
-    price: 10,
-    tag: null,
-    image: SP1,
-  },
-  {
-    id: 10,
-    name: "Nivea Lotion",
-    price: 12,
-    tag: null,
-    image: SP2,
-  },
-  {
-    id: 11,
-    name: "Lifedoc Vitamin C Serum",
-    price: 25,
-    tag: "New",
-    image: SP3,
-  },
-  {
-    id: 12,
-    name: "Lifedoc Face Mist",
-    price: 18,
-    tag: null,
-    image: SP4,
-  },
-  {
-    id: 13,
-    name: "Anti-aging Cream",
-    price: 60,
-    tag: "Sales",
-    image: SP1,
-  },
-  {
-    id: 14,
-    name: "Gucci Rush",
-    price: 75,
-    tag: null,
-    image: SP2,
-  },
-  {
-    id: 15,
-    name: "Chanel No.5",
-    price: 100,
-    tag: "New",
-    image: SP3,
-  },
-  {
-    id: 16,
-    name: "Vichy Hydration Serum",
-    price: 40,
-    tag: null,
-    image: SP4,
-  },
-  // ... thêm đến id: 30 hoặc nhiều hơn nếu cần phân trang dài hơn
-];
-
-
-const ProductCard = ({ product }) => (
-  <div className="relative rounded-xl p-4 shadow hover:shadow-md transition-all">
-    {product.tag && (
-      <span
-        className={`absolute top-2 left-2 text-xs px-2 py-1 rounded ${product.tag === "New"
-          ? "bg-red-500 text-white"
-          : "bg-orange-300 text-black"
-          }`}
-      >
-        {product.tag}
-      </span>
-    )}
-    <img
-      src={product.image}
-      alt={product.name}
-      className="w-full h-40 object-contain mb-2"
-    />
-    <h3 className="text-sm font-medium line-clamp-2 overflow-hidden h-12">
-      {product.name}
-    </h3>
-    <div className="flex justify-between items-center mt-2">
-      <span className="text-red-500 font-bold">${product.price}</span>
-      <div className="absolute bottom-4 right-4 flex gap-2 items-center">
-        <button className="p-2 rounded-full bg-gray-100 hover:bg-white transition">
-          <FaShoppingCart className="text-gray-600 hover:text-red-500" />
-        </button>
-      </div>
-    </div>
-    <button className="absolute top-2 right-2 p-2 rounded-full bg-gray-100 hover:bg-white transition">
-      <FaHeart className="text-gray-600 hover:text-red-500" />
-    </button>
-  </div>
-);
-
 const ProductsDetails = () => {
-  const [currentPage, setCurrentPage] = useState(1);
-const productsPerPage = 12;
+  const { _id } = useParams();
+  const [product, setProduct] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
 
-// Tính toán các sản phẩm cần hiển thị trên trang hiện tại
-const indexOfLastProduct = currentPage * productsPerPage;
-const indexOfFirstProduct = indexOfLastProduct - productsPerPage;
-const currentProducts = products.slice(indexOfFirstProduct, indexOfLastProduct);
+  useEffect(() => {
+    if (!_id) {
+      setError("Thiếu mã sản phẩm.");
+      setLoading(false);
+      return;
+    }
 
-// Tính tổng số trang
-const totalPages = Math.ceil(products.length / productsPerPage);
+    const fetchProduct = async () => {
+      try {
+        const response = await getProductById(_id);
+        if (response?.status) {
+          setProduct(response.data);
+          setError(null);
+        } else {
+          setError("Không tìm thấy sản phẩm.");
+        }
+      } catch (err) {
+        console.error("Lỗi khi tải sản phẩm:", err);
+        setError("Có lỗi xảy ra khi tải dữ liệu.");
+      } finally {
+        setLoading(false);
+      }
+    };
 
-// Chuyển trang
-const handlePageChange = (pageNumber) => {
-  setCurrentPage(pageNumber);
-};
+    fetchProduct();
+  }, [_id]);
+
+  if (loading)
+    return <div className="text-center mt-10">Đang tải thông tin sản phẩm...</div>;
+  if (error)
+    return <div className="text-center mt-10 text-red-500">{error}</div>;
+  if (!product)
+    return <div className="text-center mt-10">Không có dữ liệu sản phẩm.</div>;
 
   return (
     <>
       <Header />
+
       <div className="w-[75%] mx-auto px-6 py-12 text-sm text-gray-700">
         <nav className="flex items-center space-x-2">
           <Link to="/" className="hover:text-red-600 text-xl">Trang chủ</Link>
@@ -208,7 +69,7 @@ const handlePageChange = (pageNumber) => {
         </nav>
       </div>
 
-      {/* Bộ lọc và thương hiệu */}
+      {/* Brand Filter */}
       <div className="w-[75%] mx-auto px-6 mb-4">
         <div className="flex items-center gap-2 mb-8">
           <SlidersHorizontal className="w-6 h-6 text-gray-600" />
@@ -225,8 +86,52 @@ const handlePageChange = (pageNumber) => {
           ))}
         </div>
       </div>
-          <ProductDetailInfo/>
 
+      {/* Product Details */}
+      <div className="w-[75%] mx-auto px-6 py-12 grid md:grid-cols-2 gap-10 text-[#333] font-[Arial]">
+        {/* Images */}
+        <div className="flex flex-col items-center">
+          <img
+            src={product.image_url || "/default-image.jpg"}
+            alt={product.product_name || "Sản phẩm"}
+            className="w-full h-auto object-contain rounded-xl border mb-4"
+          />
+          <div className="grid grid-cols-4 gap-2">
+            {product.sub_images_urls?.length ? (
+              product.sub_images_urls.map((img, index) => (
+                <img
+                  key={index}
+                  src={img}
+                  alt={`thumb-${index}`}
+                  className="w-full border-[2px] border-gray-300 p-1 rounded-md hover:border-red-500 cursor-pointer"
+                />
+              ))
+            ) : (
+              <p>Không có hình ảnh phụ</p>
+            )}
+          </div>
+        </div>
+
+        {/* Info */}
+        <div className="text-sm">
+          <h2 className="text-xl font-semibold uppercase leading-snug mb-3">
+            {product.product_name}
+          </h2>
+          <p className="text-[#d0021b] text-2xl font-bold mb-2">
+            {product.base_price?.toLocaleString() || "0"}₫
+          </p>
+          <div className="flex items-center text-yellow-500 mb-2 text-base">
+            {[...Array(5)].map((_, i) => (
+              <FaStar key={i} className="mr-1" />
+            ))}
+            <span className="text-black ml-2 mr-2">121 Đánh Giá</span>|
+            <span className="ml-2 text-black">140 Đã Bán</span>
+          </div>
+          <p className="text-gray-600 mt-4">{product.description}</p>
+        </div>
+      </div>
+
+      {/* Related Products */}
       <ProposalProduct />
       <Footer />
     </>

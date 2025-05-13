@@ -15,7 +15,7 @@ const RouterUser = [
       { path: "/products", element: <Products /> },
       { path: "/login", element: <Login /> },
       { path: "/register", element: <Register /> },
-      { path:"/products_details" ,element:<ProductsDetails />} 
+  { path: "/product/:_id", element: <ProductsDetails  /> },
     ],
   },
 ];
