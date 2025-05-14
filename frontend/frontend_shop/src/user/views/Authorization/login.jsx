@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import Input from "../../components/input/Input";
 import Button from "../../components/Button/Button";
-import loginImage from "../../assets/images/sp1.png";
+import loginImage from "../../../../public/login.png";
 import { useNavigate } from "react-router-dom";
 
 const Login = () => {
@@ -110,7 +110,7 @@ const Login = () => {
                         Chưa có tài khoản! Đăng ký ngay
                     </div>
                 </div>
-                <div className="w-1/2 flex justify-center items-center bg-gray-200 order-2">
+                <div className="w-1/2 flex justify-center items-center bg-[#FFEDE1] order-2">
                     <img
                         src={loginImage}
                         alt="Login"

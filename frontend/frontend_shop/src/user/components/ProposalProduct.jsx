@@ -10,7 +10,7 @@ import SP2 from "../assets/images/sp2.png";
 import SP3 from "../assets/images/sp3.png";
 import SP4 from "../assets/images/sp4.png";
 
-const trendingproducts = [
+const proposalProduct = [
   {
     id: 1,
     name: "CHANEL. RED CAMELLIA EXPERT REVITALIZING SERUM DUO",
@@ -50,20 +50,20 @@ const trendingproducts = [
   },
 ];
 
-const TrendingProducts = () => {
-  const [visibleProducts, setVisibleProducts] = useState(trendingproducts.slice(0, 4)); // Show first 4 products
+const ProposalProduct = () => {
+  const [visibleProducts, setVisibleProducts] = useState(proposalProduct.slice(0, 4)); // Show first 4 products
 
   const scroll = (direction) => {
     if (direction === "right") {
       // Move the first product to the end
       setVisibleProducts((prevProducts) => [
         ...prevProducts.slice(1),
-        trendingproducts[(trendingproducts.indexOf(prevProducts[prevProducts.length - 1]) + 1) % trendingproducts.length],
+        proposalProduct[(proposalProduct.indexOf(prevProducts[prevProducts.length - 1]) + 1) % proposalProduct.length],
       ]);
     } else if (direction === "left") {
       // Move the last product to the front
       setVisibleProducts((prevProducts) => [
-        trendingproducts[(trendingproducts.indexOf(prevProducts[0]) - 1 + trendingproducts.length) % trendingproducts.length],
+        proposalProduct[(proposalProduct.indexOf(prevProducts[0]) - 1 + proposalProduct.length) % proposalProduct.length],
         ...prevProducts.slice(0, -1),
       ]);
     }
@@ -72,7 +72,7 @@ const TrendingProducts = () => {
   return (
     <div className="w-full md:w-[70%] mx-auto px-4 md:px-0 mt-10">
       <div className="flex items-center justify-between mb-6">
-        <h2 className="text-2xl font-semibold">Sản Phẩm Thịnh Hành</h2>
+        <h2 className="text-2xl font-semibold">Đề Xuất Dành Cho Bạn</h2>
         <div className="flex gap-2">
           <button
             onClick={() => scroll("left")}
@@ -132,4 +132,4 @@ const TrendingProducts = () => {
   );
 };
 
-export default TrendingProducts;
+export default ProposalProduct;
