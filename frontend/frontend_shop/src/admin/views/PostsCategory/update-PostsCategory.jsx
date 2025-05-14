@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
     Typography,
     Box,
@@ -7,9 +7,11 @@ import {
     Snackbar,
     Alert,
 } from '@mui/material';
-import { useNavigate } from 'react-router-dom';
+import { useParams, useNavigate } from 'react-router-dom';
 
-const AddPostsCategory = () => {
+const UpdatePostsCategory = () => {
+    const { id } = useParams();
+    const navigate = useNavigate();
     const [category, setCategory] = useState({
         title: '',
         slug: '',
@@ -17,37 +19,45 @@ const AddPostsCategory = () => {
     });
     const [openSnackbar, setOpenSnackbar] = useState(false);
     const [snackbarMessage, setSnackbarMessage] = useState('');
-    const navigate = useNavigate();
+
+    useEffect(() => {
+        const token = localStorage.getItem('token');
+        fetch(`http://localhost:5000/api/PostsCategory/PostsCategory-detail/${id}`, {
+            headers: { Authorization: `Bearer ${token}` },
+        })
+            .then((res) => res.json())
+            .then((data) => {
+                if (data.status) setCategory(data.data);
+            });
+    }, [id]);
 
     const handleChange = (e) => {
         const { name, value } = e.target;
-        setCategory({ ...category, [name]: value });
+        setCategory((prev) => ({
+            ...prev,
+            [name]: value,
+        }));
     };
 
     const handleSubmit = (e) => {
         e.preventDefault();
         const token = localStorage.getItem('token');
-        fetch('http://localhost:5000/api/PostsCategory/add-PostsCategory', {
-            method: 'POST',
+        fetch(`http://localhost:5000/api/PostsCategory/update-PostsCategory/${id}`, {
+            method: 'PUT',
             headers: {
                 'Content-Type': 'application/json',
                 Authorization: `Bearer ${token}`,
             },
             body: JSON.stringify(category),
         })
-            .then((response) => {
-                if (!response.ok) {
-                    throw new Error(`Lỗi! trạng thái: ${response.status}`);
-                }
-                return response.json();
-            })
+            .then((res) => res.json())
             .then((data) => {
-                setSnackbarMessage('Thêm danh mục thành công!');
+                setSnackbarMessage('Cập nhật danh mục thành công!');
                 setOpenSnackbar(true);
                 setTimeout(() => navigate('/admin/PostsCategory-list'), 1000);
             })
             .catch((error) => {
-                setSnackbarMessage('Thêm thất bại: ' + error.message);
+                setSnackbarMessage('Cập nhật thất bại: ' + error.message);
                 setOpenSnackbar(true);
             });
     };
@@ -59,7 +69,7 @@ const AddPostsCategory = () => {
     return (
         <Box sx={{ padding: 3, backgroundColor: '#fff', borderRadius: 2, boxShadow: 1 }}>
             <Typography variant="h6" fontWeight={600} mb={2}>
-                Thêm Danh Mục Bài Viết
+                Cập Nhật Danh Mục Bài Viết
             </Typography>
             <form onSubmit={handleSubmit}>
                 <TextField
@@ -90,14 +100,14 @@ const AddPostsCategory = () => {
                     sx={{ mb: 2 }}
                 />
                 <Button variant="contained" color="primary" type="submit" sx={{ mr: 2 }}>
-                    Thêm Danh Mục
+                    Cập Nhật
                 </Button>
                 <Button variant="outlined" color="secondary" onClick={() => navigate('/admin/PostsCategory-list')}>
                     Quay Lại
                 </Button>
             </form>
             <Snackbar open={openSnackbar} autoHideDuration={6000} onClose={handleCloseSnackbar}>
-                <Alert onClose={handleCloseSnackbar} severity={snackbarMessage.includes('thất bại') ? 'error' : 'success'}>
+                <Alert onClose={handleCloseSnackbar} severity={snackbarMessage.includes('thất bại') || snackbarMessage.includes('lỗi') ? 'error' : 'success'}>
                     {snackbarMessage}
                 </Alert>
             </Snackbar>
@@ -105,4 +115,4 @@ const AddPostsCategory = () => {
     );
 };
 
-export default AddPostsCategory;
+export default UpdatePostsCategory;

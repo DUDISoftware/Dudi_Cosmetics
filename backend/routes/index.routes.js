@@ -36,8 +36,8 @@ router.delete("/users/delete-user/:id", verifyToken, verifyAdmin, deleteUser);
 router.post("/product/add-product", verifyToken, verifyAdmin, uploadImage.single('image'), createProduct);
 router.get("/Product/products-list", getAllProducts);
 router.get("/Product/products-detail/:id", getProductById);
-router.put("/Product/products/:id", verifyToken, verifyAdmin, uploadImage.single('image'), updateProduct);
-router.delete("/Product/products/:id", verifyToken, verifyAdmin, deleteProduct);
+router.put("/Product/update-products/:id", verifyToken, verifyAdmin, uploadImage.single('image'), updateProduct);
+router.delete("/Product/delete-products/:id", verifyToken, verifyAdmin, deleteProduct);
 
 // ProductBrand routes
 router.post("/ProductBrand/add-ProductBrand", verifyToken, verifyAdmin, uploadImage.single('image'), createProductBrand);

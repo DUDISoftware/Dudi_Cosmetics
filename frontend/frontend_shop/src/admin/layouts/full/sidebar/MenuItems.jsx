@@ -38,7 +38,7 @@ const Menuitems = [
     id: uniqueId(),
     title: 'Danh Sách loại Bài Viết',
     icon: IconLayoutDashboard,
-    href: '/admin/voucherlist',
+    href: '/admin/PostsCategory-list',
   },
   {
     id: uniqueId(),
