@@ -1,13 +1,11 @@
 const productBrandService = require('../services/ProductBrand.service');
-const toSlug = require('../utils/slug.util'); // Import hàm toSlug
 
 // Tạo thương hiệu sản phẩm mới
 exports.createProductBrand = async (req, res) => {
   try {
     const brandData = req.body;
-    const file = req.file; // Lấy file từ request (sử dụng Multer)
+    const file = req.file;
 
-    // Kiểm tra dữ liệu đầu vào
     if (!brandData || !brandData.Brand_name || !file) {
       return res.status(400).json({
         status: false,
@@ -15,10 +13,6 @@ exports.createProductBrand = async (req, res) => {
       });
     }
 
-    // Tạo slug từ Brand_name
-    brandData.slug = toSlug(brandData.Brand_name);
-
-    // Gọi service để tạo thương hiệu
     const newBrand = await productBrandService.createProductBrandSv(brandData, file);
     res.status(201).json({
       status: true,
@@ -39,18 +33,13 @@ exports.updateProductBrand = async (req, res) => {
   try {
     const { id } = req.params;
     const updateData = req.body;
-    const file = req.file; // Lấy file từ request (sử dụng Multer)
+    const file = req.file;
 
     if (!id || !updateData) {
       return res.status(400).json({
         status: false,
         message: "Dữ liệu cập nhật không hợp lệ",
       });
-    }
-
-    // Tạo slug từ Brand_name nếu có cập nhật Brand_name
-    if (updateData.Brand_name) {
-      updateData.slug = toSlug(updateData.Brand_name);
     }
 
     const updatedBrand = await productBrandService.updateProductBrandSv(id, updateData, file);

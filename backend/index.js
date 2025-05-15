@@ -13,7 +13,6 @@ dotenv.config();
 
 // Cấu hình middleware
 app.use(cors()); // Cho phép CORS
-app.use(express.json()); // Parse JSON requests
 app.use(bodyParser.urlencoded({ extended: false })); // Parse URL-encoded bodies
 app.use(express.json()); // Parse JSON requests
 
