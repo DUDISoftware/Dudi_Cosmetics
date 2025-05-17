@@ -8,24 +8,22 @@ import {
     TableRow,
     Button,
 } from '@mui/material';
-import { useNavigate } from 'react-router-dom'; // Import useNavigate
+import { useNavigate } from 'react-router-dom';
 
 const VoucherList = () => {
     const [vouchers, setVouchers] = useState([]);
-    const navigate = useNavigate(); // Khởi tạo useNavigate
+    const navigate = useNavigate();
 
     useEffect(() => {
-        const token = localStorage.getItem('token'); // Lấy token từ localStorage
-
+        const token = localStorage.getItem('token');
         if (!token) {
             console.error('Token không tồn tại. Vui lòng đăng nhập lại.');
             return;
         }
 
-        // Fetch vouchers from API
         fetch('http://localhost:5000/api/Vouchers/Vouchers-list', {
             headers: {
-                Authorization: `Bearer ${token}`, // Thêm token vào header
+                Authorization: `Bearer ${token}`,
             },
         })
             .then((response) => {
@@ -45,26 +43,11 @@ const VoucherList = () => {
     }, []);
 
     const handleView = (id) => {
-        fetch(`http://localhost:5000/api/Vouchers/Vouchers-detail/${id}`, {
-            headers: {
-                Authorization: `Bearer ${localStorage.getItem('token')}`,
-            },
-        })
-            .then((response) => {
-                if (!response.ok) {
-                    throw new Error(`Lỗi HTTP! trạng thái: ${response.status}`);
-                }
-                return response.json();
-            })
-            .then((data) => {
-                console.log('Chi tiết voucher:', data);
-                // Thêm logic hiển thị chi tiết voucher (ví dụ: mở modal hoặc chuyển hướng)
-            })
-            .catch((error) => console.error('Lỗi khi xem chi tiết voucher:', error));
+        navigate(`/admin/voucher/detail/${id}`);
     };
 
     const handleEdit = (id) => {
-        navigate(`/admin/views/voucher/update-Vouchers/${id}`); // Chuyển hướng đến trang sửa voucher
+        navigate(`/admin/voucher/update/${id}`);
     };
 
     const handleDelete = (id) => {
@@ -83,8 +66,7 @@ const VoucherList = () => {
                 })
                 .then((data) => {
                     if (data.status) {
-                        console.log('Xóa voucher thành công:', data.message);
-                        setVouchers((prev) => prev.filter((voucher) => voucher._id !== id)); // Cập nhật danh sách
+                        setVouchers((prev) => prev.filter((voucher) => voucher._id !== id));
                     } else {
                         console.error('Không thể xóa voucher:', data.message);
                     }
@@ -94,7 +76,7 @@ const VoucherList = () => {
     };
 
     const handleAddVoucher = () => {
-        navigate('/admin/views/voucher/add-Vouchers'); // Chuyển hướng đến trang thêm voucher
+        navigate('/admin/voucher/add');
     };
 
     return (
@@ -120,6 +102,11 @@ const VoucherList = () => {
                 >
                     <TableHead>
                         <TableRow>
+                            <TableCell>
+                                <Typography variant="subtitle2" fontWeight={600}>
+                                    STT
+                                </Typography>
+                            </TableCell>
                             <TableCell>
                                 <Typography variant="subtitle2" fontWeight={600}>
                                     Mã
@@ -159,8 +146,18 @@ const VoucherList = () => {
                     </TableHead>
                     <TableBody>
                         {vouchers.length > 0 ? (
-                            vouchers.map((voucher) => (
+                            vouchers.map((voucher, idx) => (
                                 <TableRow key={voucher._id}>
+                                    <TableCell>
+                                        <Typography
+                                            sx={{
+                                                fontSize: "15px",
+                                                fontWeight: "500",
+                                            }}
+                                        >
+                                            {idx + 1}
+                                        </Typography>
+                                    </TableCell>
                                     <TableCell>
                                         <Typography
                                             sx={{
@@ -248,7 +245,7 @@ const VoucherList = () => {
                             ))
                         ) : (
                             <TableRow>
-                                <TableCell colSpan={7} align="center">
+                                <TableCell colSpan={8} align="center">
                                     <Typography variant="subtitle1">
                                         Không có voucher nào.
                                     </Typography>

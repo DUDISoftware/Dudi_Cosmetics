@@ -36,6 +36,10 @@ exports.getVoucherByIdSv = async (id) => {
 // Cập nhật voucher
 exports.updateVoucherSv = async (id, updateData) => {
   try {
+    // Xóa trường _id nếu có trong updateData
+    if (updateData._id) {
+      delete updateData._id;
+    }
     return await Voucher.findByIdAndUpdate(
       id,
       updateData,

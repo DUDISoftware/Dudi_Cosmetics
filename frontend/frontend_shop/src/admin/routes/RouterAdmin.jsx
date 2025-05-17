@@ -12,6 +12,9 @@ const BlankLayout = Loadable(lazy(() => import('../layouts/blank/BlankLayout')))
 
 /* ****Pages Voucher***** */
 const VoucherList = Loadable(lazy(() => import('../views/voucher/VoucherList')));
+const AddVouchers = Loadable(lazy(() => import('../views/voucher/add-Vouchers')));
+const UpdateVouchers = Loadable(lazy(() => import('../views/voucher/update-Vouchers')));
+const VouchersDetail = Loadable(lazy(() => import('../views/voucher/Vouchers-detail')));
 
 /* ****Pages Banner***** */
 const add_Banners = Loadable(lazy(() => import('../views/Banners/add-Banners')));
@@ -30,7 +33,10 @@ const add_ProductBrand = Loadable(lazy(() => import('../views/voucher/VoucherLis
 const add_product = Loadable(lazy(() => import('../views/voucher/VoucherList')));
 
 /* ****Pages PostsCategory***** */
-const add_PostsCategory = Loadable(lazy(() => import('../views/voucher/VoucherList')));
+const PostsCategoryList = Loadable(lazy(() => import('../views/PostsCategory/PostsCategory-list')));
+const AddPostsCategory = Loadable(lazy(() => import('../views/PostsCategory/add-PostsCategory')));
+const UpdatePostsCategory = Loadable(lazy(() => import('../views/PostsCategory/update-PostsCategory')));
+const PostsCategoryDetail = Loadable(lazy(() => import('../views/PostsCategory/PostsCategory-detail')));
 
 /* ****Pages Posts***** */
 const add_Posts = Loadable(lazy(() => import('../views/voucher/VoucherList')));
@@ -42,7 +48,16 @@ const RouterAdmin = [
     children: [
       { path: '/admin', element: <Navigate to="/voucherlist" /> },
       { path: '/admin/voucherlist', exact: true, element: <VoucherList /> },
+      { path: '/admin/voucher/add', exact: true, element: <AddVouchers /> },
+      { path: '/admin/voucher/update/:id', exact: true, element: <UpdateVouchers /> },
+      { path: '/admin/voucher/detail/:id', exact: true, element: <VouchersDetail /> },
       { path: '/admin/Banners/Banners_list', exact: true, element: <Banners_list /> },
+
+      // PostsCategory routes
+      { path: '/admin/PostsCategory-list', exact: true, element: <PostsCategoryList /> },
+      { path: '/admin/PostsCategory/add', exact: true, element: <AddPostsCategory /> },
+      { path: '/admin/PostsCategory/update/:id', exact: true, element: <UpdatePostsCategory /> },
+      { path: '/admin/PostsCategory/detail/:id', exact: true, element: <PostsCategoryDetail /> },
     ],
   },
   {
