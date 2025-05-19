@@ -3,7 +3,7 @@ const uniqueValidator = require("mongoose-unique-validator");
 
 const productCategoryChildSchema = new mongoose.Schema({
   category_name: { type: String, unique: true, required: true },
-  slug: { type: String, unique: true, required: true },
+  slug: { type: String, required: true },
   parent_id: { type: mongoose.Schema.Types.ObjectId, ref: "ProductCategoryParent", required: true },
   status: String,
   created_at: { type: Date, default: Date.now }

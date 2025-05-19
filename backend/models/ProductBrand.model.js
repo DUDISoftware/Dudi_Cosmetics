@@ -3,7 +3,7 @@ const uniqueValidator = require("mongoose-unique-validator");
 
 const productBrandSchema = new mongoose.Schema({
   Brand_name: { type: String, unique: true,  required: true },
-  slug: { type: String, unique: true, required: true },
+  slug: { type: String, required: true },
   status: String ,
   image_url: String,
   created_at: { type: Date, default: Date.now }
