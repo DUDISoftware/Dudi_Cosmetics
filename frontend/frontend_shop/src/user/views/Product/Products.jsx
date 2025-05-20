@@ -5,7 +5,7 @@ import TrendingProducts from "../../components/TrendingProducts";
 import { Link } from "react-router-dom";
 import { ArrowRightIcon, SlidersHorizontal } from "lucide-react";
 import { FaHeart, FaShoppingCart } from "react-icons/fa";
-import { getProducts } from "../../../api/productsApi.js";  // Import API function
+import { getProducts } from "../../../api/productsApi.js";  
 
 const brandLogos = [
   { name: "Lifedoc", src: "/brands/lifedoc.png" },
@@ -27,7 +27,7 @@ const ProductCard = ({ product }) => (
         New
       </span>
     )}
-<Link to={`/product/${product._id}`}>
+    <Link to={`/product/${product._id}`}>
 
 
       <img

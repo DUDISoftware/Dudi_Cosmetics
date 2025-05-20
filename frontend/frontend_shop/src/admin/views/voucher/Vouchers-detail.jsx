@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { Typography, Box, Button } from '@mui/material';
 import { useParams, useNavigate } from 'react-router-dom';
+import { getVoucherById, deleteVoucher } from '../../../api/voucherApi';
 
 const VouchersDetail = () => {
     const { id } = useParams();
@@ -8,36 +9,47 @@ const VouchersDetail = () => {
     const navigate = useNavigate();
 
     useEffect(() => {
-        const token = localStorage.getItem('token');
+        const fetchVoucher = async () => {
+            const token = localStorage.getItem('token');
+            if (!token) {
+                console.error('Token không tồn tại. Vui lòng đăng nhập lại.');
+                return;
+            }
 
-        if (!token) {
-            console.error('Token không tồn tại. Vui lòng đăng nhập lại.');
-            return;
-        }
-
-        fetch(`http://localhost:5000/api/Vouchers/Vouchers-detail/${id}`, {
-            headers: {
-                Authorization: `Bearer ${token}`,
-            },
-        })
-            .then((response) => {
-                if (!response.ok) {
-                    throw new Error(`Lỗi HTTP! trạng thái: ${response.status}`);
-                }
-                return response.json();
-            })
-            .then((data) => {
+            try {
+                const data = await getVoucherById(id, token);
                 if (data.status) {
                     setVoucher(data.data);
                 } else {
                     console.error('Không thể lấy chi tiết voucher:', data.message);
                 }
-            })
-            .catch((error) => console.error('Lỗi khi lấy chi tiết voucher:', error));
+            } catch (error) {
+                console.error('Lỗi khi lấy chi tiết voucher:', error);
+            }
+        };
+
+        fetchVoucher();
     }, [id]);
 
     const handleBack = () => {
         navigate('/admin/voucherlist');
+    };
+
+    const handleDelete = async () => {
+        if (window.confirm('Bạn có chắc chắn muốn xóa voucher này?')) {
+            const token = localStorage.getItem('token');
+            try {
+                const response = await deleteVoucher(id, token);
+                if (response.status) {
+                    alert('Xóa voucher thành công!');
+                    navigate('/admin/voucherlist');
+                } else {
+                    alert('Xóa voucher thất bại: ' + response.message);
+                }
+            } catch (error) {
+                alert('Lỗi khi xóa voucher: ' + error);
+            }
+        }
     };
 
     if (!voucher) {
@@ -66,27 +78,7 @@ const VouchersDetail = () => {
             <Button
                 variant="contained"
                 color="error"
-                onClick={() => {
-                    if (window.confirm('Bạn có chắc chắn muốn xóa voucher này?')) {
-                        const token = localStorage.getItem('token');
-                        fetch(`http://localhost:5000/api/Vouchers/delete-Vouchers/${id}`, {
-                            method: 'DELETE',
-                            headers: {
-                                Authorization: `Bearer ${token}`,
-                            },
-                        })
-                            .then((response) => response.json())
-                            .then((data) => {
-                                if (data.status) {
-                                    alert('Xóa voucher thành công!');
-                                    navigate('/admin/voucherlist');
-                                } else {
-                                    alert('Xóa voucher thất bại: ' + data.message);
-                                }
-                            })
-                            .catch((error) => alert('Lỗi khi xóa voucher: ' + error));
-                    }
-                }}
+                onClick={handleDelete}
                 sx={{ mt: 2, mr: 2 }}
             >
                 Xóa

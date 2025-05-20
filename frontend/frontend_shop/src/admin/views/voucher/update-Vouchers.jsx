@@ -8,6 +8,7 @@ import {
     Alert,
 } from '@mui/material';
 import { useParams, useNavigate } from 'react-router-dom';
+import { getVoucherById, updateVoucher } from '../../../api/voucherApi';
 
 const UpdateVouchers = () => {
     const { id } = useParams();
@@ -23,39 +24,34 @@ const UpdateVouchers = () => {
     const [openSnackbar, setOpenSnackbar] = useState(false);
     const [snackbarMessage, setSnackbarMessage] = useState('');
 
+    // Lấy chi tiết voucher khi component mount
     useEffect(() => {
-        const token = localStorage.getItem('token');
-        if (!token) {
-            setSnackbarMessage('Token không tồn tại. Vui lòng đăng nhập lại.');
-            setOpenSnackbar(true);
-            return;
-        }
+        const fetchVoucher = async () => {
+            const token = localStorage.getItem('token');
+            if (!token) {
+                setSnackbarMessage('Token không tồn tại. Vui lòng đăng nhập lại.');
+                setOpenSnackbar(true);
+                return;
+            }
 
-        fetch(`http://localhost:5000/api/Vouchers/Vouchers-detail/${id}`, {
-            headers: {
-                Authorization: `Bearer ${token}`,
-            },
-        })
-            .then((response) => {
-                if (!response.ok) {
-                    throw new Error(`Lỗi HTTP! trạng thái: ${response.status}`);
-                }
-                return response.json();
-            })
-            .then((data) => {
+            try {
+                const data = await getVoucherById(id, token);
                 if (data.status) {
                     setVoucher(data.data);
                 } else {
                     setSnackbarMessage('Không thể lấy chi tiết voucher: ' + data.message);
                     setOpenSnackbar(true);
                 }
-            })
-            .catch((error) => {
+            } catch (error) {
                 setSnackbarMessage('Lỗi khi lấy chi tiết voucher: ' + error.message);
                 setOpenSnackbar(true);
-            });
+            }
+        };
+
+        fetchVoucher();
     }, [id]);
 
+    // Xử lý thay đổi của các trường trong form
     const handleChange = (e) => {
         const { name, value } = e.target;
         setVoucher((prev) => ({
@@ -64,40 +60,27 @@ const UpdateVouchers = () => {
         }));
     };
 
-    const handleSubmit = (e) => {
+    // Xử lý khi submit form
+    const handleSubmit = async (e) => {
         e.preventDefault();
         const token = localStorage.getItem('token');
-        // Loại bỏ _id nếu có
+        // Loại bỏ _id khỏi dữ liệu trước khi gửi
         const { _id, ...voucherData } = voucher;
 
-        fetch(`http://localhost:5000/api/Vouchers/update-Vouchers/${id}`, {
-            method: 'PUT',
-            headers: {
-                'Content-Type': 'application/json',
-                Authorization: `Bearer ${token}`,
-            },
-            body: JSON.stringify(voucherData),
-        })
-            .then((response) => {
-                if (!response.ok) {
-                    throw new Error(`Lỗi HTTP! trạng thái: ${response.status}`);
-                }
-                return response.json();
-            })
-            .then((data) => {
-                if (data.status) {
-                    setSnackbarMessage('Cập nhật voucher thành công!');
-                    setOpenSnackbar(true);
-                    setTimeout(() => navigate('/admin/voucherlist'), 1000);
-                } else {
-                    setSnackbarMessage('Không thể cập nhật voucher: ' + data.message);
-                    setOpenSnackbar(true);
-                }
-            })
-            .catch((error) => {
-                setSnackbarMessage('Lỗi khi cập nhật voucher: ' + error.message);
+        try {
+            const data = await updateVoucher(id, voucherData, token);
+            if (data.status) {
+                setSnackbarMessage('Cập nhật voucher thành công!');
                 setOpenSnackbar(true);
-            });
+                setTimeout(() => navigate('/admin/voucherlist'), 1000);
+            } else {
+                setSnackbarMessage('Không thể cập nhật voucher: ' + data.message);
+                setOpenSnackbar(true);
+            }
+        } catch (error) {
+            setSnackbarMessage('Lỗi khi cập nhật voucher: ' + error.message);
+            setOpenSnackbar(true);
+        }
     };
 
     const handleCloseSnackbar = () => {
