@@ -41,9 +41,9 @@ export const addProduct = async (formData, token) => {
 
 // Cập nhật sản phẩm
 export const updateProduct = async (id, formData, token) => {
-  return apiRequest("put", `/Product/update-Product/${id}`, formData, token);
+  return apiRequest("put", `/Product/update-products/${id}`, formData, token);
 };
 
 // Xóa sản phẩm
 export const deleteProduct = (id, token) =>
-  apiRequest("delete", `/Product/delete-Product/${id}`, {}, token);
+  apiRequest("delete", `/Product/delete-products/${id}`, {}, token);

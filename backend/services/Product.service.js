@@ -115,12 +115,16 @@ exports.getAllProductsSv = async (filters = {}) => {
 // Lấy chi tiết sản phẩm
 exports.getProductByIdSv = async (id) => {
   try {
-    return await Product.findById(id);
+    const product = await Product.findById(id).lean();
+    if (!product) return null;
+    // Lấy parent_id từ ProductCategoryChild
+    const child = await ProductCategoryChild.findById(product.category_id).lean();
+    product.parent_id = child?.parent_id ? String(child.parent_id) : '';
+    return product;
   } catch (error) {
     throw new Error("Lỗi khi lấy chi tiết sản phẩm: " + error.message);
   }
 };
-
 
 
 

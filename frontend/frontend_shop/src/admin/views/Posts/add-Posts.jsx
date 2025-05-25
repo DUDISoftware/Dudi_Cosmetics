@@ -111,7 +111,7 @@ const AddPosts = () => {
             setOpenSnackbar(true);
             return;
         }
-
+ 
         setLoading(true);
         try {
             const formData = new FormData();

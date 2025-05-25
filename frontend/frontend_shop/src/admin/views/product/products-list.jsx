@@ -7,13 +7,17 @@ import {
     TableHead,
     TableRow,
     Button,
-    Chip
+    Chip,
+    Snackbar,
+    Alert
 } from '@mui/material';
 import { useNavigate } from 'react-router-dom';
 import { getProducts, deleteProduct } from '../../../api/productsApi';
 
 const ProductsList = () => {
     const [products, setProducts] = useState([]);
+    const [openSnackbar, setOpenSnackbar] = useState(false);
+    const [snackbarMessage, setSnackbarMessage] = useState('');
     const navigate = useNavigate();
 
     useEffect(() => {
@@ -21,7 +25,8 @@ const ProductsList = () => {
         const fetchProducts = async () => {
             const token = localStorage.getItem('token');
             if (!token) {
-                console.error('Token không tồn tại. Vui lòng đăng nhập lại.');
+                setSnackbarMessage('Token không tồn tại. Vui lòng đăng nhập lại.');
+                setOpenSnackbar(true);
                 return;
             }
 
@@ -29,6 +34,8 @@ const ProductsList = () => {
                 const data = await getProducts(token);
                 setProducts(data.data);
             } catch (error) {
+                setSnackbarMessage('Lỗi khi lấy danh sách sản phẩm!');
+                setOpenSnackbar(true);
                 console.error('Lỗi khi lấy danh sách sản phẩm:', error.message);
             }
         };
@@ -49,10 +56,16 @@ const ProductsList = () => {
                 const response = await deleteProduct(id, token);
                 if (response.status) {
                     setProducts(prev => prev.filter(product => product._id !== id));
+                    setSnackbarMessage('Xóa sản phẩm thành công!');
+                    setOpenSnackbar(true);
                 } else {
+                    setSnackbarMessage('Không thể xóa sản phẩm!');
+                    setOpenSnackbar(true);
                     console.error('Không thể xóa sản phẩm:', response.message);
                 }
             } catch (error) {
+                setSnackbarMessage('Lỗi khi xóa sản phẩm!');
+                setOpenSnackbar(true);
                 console.error('Lỗi khi xóa sản phẩm:', error.message);
             }
         }
@@ -147,6 +160,20 @@ const ProductsList = () => {
                     </TableBody>
                 </Table>
             </Box>
+            <Snackbar
+                open={openSnackbar}
+                autoHideDuration={3000}
+                onClose={() => setOpenSnackbar(false)}
+                anchorOrigin={{ vertical: 'top', horizontal: 'center' }}
+            >
+                <Alert
+                    onClose={() => setOpenSnackbar(false)}
+                    severity={snackbarMessage.includes('thành công') ? 'success' : 'error'}
+                    sx={{ width: '100%' }}
+                >
+                    {snackbarMessage}
+                </Alert>
+            </Snackbar>
         </Box>
     );
 };

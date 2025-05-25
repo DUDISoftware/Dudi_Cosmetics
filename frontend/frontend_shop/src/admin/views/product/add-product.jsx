@@ -45,6 +45,8 @@ const AddProduct = () => {
     const [pcChilds, setPCChilds] = useState([]);
     const [selectedPCParent, setSelectedPCParent] = useState('');
     const navigate = useNavigate();
+    // Lấy user_id từ localStorage
+    const user_id = localStorage.getItem('user_id');
 
     useEffect(() => {
         const fetchData = async () => {
@@ -174,6 +176,7 @@ const AddProduct = () => {
             Object.keys(product).forEach(key => {
                 formData.append(key, product[key]);
             });
+            formData.append('user_id', user_id); // Gửi user_id lên API
             formData.append('image_url', mainImage);
             // Thêm các ảnh phụ
             subImages.forEach((img, idx) => {
@@ -307,9 +310,17 @@ const AddProduct = () => {
                     </Button>
                 </Box>
             </form>
-            <Snackbar open={openSnackbar} autoHideDuration={6000} onClose={() => setOpenSnackbar(false)}>
-                <Alert onClose={() => setOpenSnackbar(false)}
-                    severity={snackbarMessage.includes('thành công') ? 'success' : 'error'}>
+            <Snackbar
+                open={openSnackbar}
+                autoHideDuration={6000}
+                onClose={() => setOpenSnackbar(false)}
+                anchorOrigin={{ vertical: 'top', horizontal: 'center' }} // Hiển thị giữa màn hình
+            >
+                <Alert
+                    onClose={() => setOpenSnackbar(false)}
+                    severity={snackbarMessage.includes('thành công') ? 'success' : 'error'}
+                    sx={{ width: '100%' }}
+                >
                     {snackbarMessage}
                 </Alert>
             </Snackbar>

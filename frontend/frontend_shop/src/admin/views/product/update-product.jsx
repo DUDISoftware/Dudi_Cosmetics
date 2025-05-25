@@ -17,6 +17,7 @@ import {
 import { useNavigate, useParams } from 'react-router-dom';
 import { getProductById, updateProduct } from '../../../api/productsApi';
 import { getProductBrands } from '../../../api/ProductBrandApi';
+import { getPCParents } from '../../../api/pcParentApi';
 import { getPCChilds } from '../../../api/pcChildApi';
 
 const UpdateProduct = () => {
@@ -35,19 +36,46 @@ const UpdateProduct = () => {
     });
     const [mainImage, setMainImage] = useState(null);
     const [imagePreview, setImagePreview] = useState(null);
+    const [subImages, setSubImages] = useState([]);
+    const [subImagePreviews, setSubImagePreviews] = useState([]);
+    const [oldSubImages, setOldSubImages] = useState([]); // Ảnh phụ cũ từ API
     const [openSnackbar, setOpenSnackbar] = useState(false);
     const [snackbarMessage, setSnackbarMessage] = useState('');
     const [loading, setLoading] = useState(false);
     const [productBrands, setProductBrands] = useState([]);
+    const [pcParents, setPCParents] = useState([]);
     const [pcChilds, setPCChilds] = useState([]);
+    const [selectedPCParent, setSelectedPCParent] = useState('');
     const navigate = useNavigate();
 
     useEffect(() => {
-        const fetchProduct = async () => {
+        const fetchData = async () => {
             const token = localStorage.getItem('token');
             try {
+                const [brandsData, parentsData] = await Promise.all([
+                    getProductBrands(token),
+                    getPCParents(token)
+                ]);
+                setProductBrands(brandsData.data);
+                setPCParents(parentsData.data);
+
                 const productData = await getProductById(id, token);
-                const { product_name, short_description, long_description, status, base_price, store_quantity, category_id, brand_id, image_url } = productData.data;
+                const {
+                    product_name,
+                    short_description,
+                    long_description,
+                    status,
+                    base_price,
+                    store_quantity,
+                    category_id,
+                    brand_id,
+                    image_url,
+                    sub_images_urls = [],
+                    parent_id,
+                    is_hot,
+                    is_most_viewed
+                } = productData.data;
+
                 setProduct({
                     product_name,
                     short_description,
@@ -56,30 +84,52 @@ const UpdateProduct = () => {
                     base_price,
                     store_quantity,
                     category_id,
-                    brand_id
+                    brand_id,
+                    is_hot: is_hot || false,
+                    is_most_viewed: is_most_viewed || false
                 });
                 setImagePreview(image_url || null);
+                setOldSubImages(sub_images_urls || []);
+                setSubImagePreviews(sub_images_urls || []);
+                setSelectedPCParent(parent_id || '');
+
+                // Lấy danh mục con theo parent_id
+                if (parent_id) {
+                    const childsData = await getPCChilds(token);
+                    const filtered = childsData.data.filter(child => String(child.parent_id) === String(parent_id));
+                    setPCChilds(filtered);
+                }
             } catch (error) {
-                console.error('Lỗi khi tải sản phẩm:', error);
                 setSnackbarMessage('Không thể tải thông tin sản phẩm');
                 setOpenSnackbar(true);
             }
         };
-        fetchProduct();
-
-        const fetchData = async () => {
-            const token = localStorage.getItem('token');
-            try {
-                const brandsData = await getProductBrands(token);
-                setProductBrands(brandsData.data);
-                const categoriesData = await getPCChilds(token);
-                setPCChilds(categoriesData.data);
-            } catch (error) {
-                console.error('Lỗi khi lấy dữ liệu:', error);
-            }
-        };
         fetchData();
     }, [id]);
+
+    useEffect(() => {
+        const fetchChilds = async () => {
+            if (!selectedPCParent) {
+                setPCChilds([]);
+                setProduct(prev => ({ ...prev, category_id: '' }));
+                return;
+            }
+            const token = localStorage.getItem('token');
+            try {
+                const childsData = await getPCChilds(token);
+                const filtered = childsData.data.filter(child => String(child.parent_id) === String(selectedPCParent));
+                setPCChilds(filtered);
+                // Nếu category_id không thuộc filtered thì reset
+                setProduct(prev => ({
+                    ...prev,
+                    category_id: filtered.some(child => child._id === prev.category_id) ? prev.category_id : ''
+                }));
+            } catch (error) {
+                setPCChilds([]);
+            }
+        };
+        fetchChilds();
+    }, [selectedPCParent]);
 
     const handleChange = (e) => {
         const { name, value, type, checked } = e.target;
@@ -87,6 +137,10 @@ const UpdateProduct = () => {
             ...prev,
             [name]: type === 'checkbox' ? checked : value
         }));
+    };
+
+    const handlePCParentChange = (e) => {
+        setSelectedPCParent(e.target.value);
     };
 
     const handleImageChange = (e) => {
@@ -99,9 +153,7 @@ const UpdateProduct = () => {
             setOpenSnackbar(true);
             return;
         }
-
-        const maxSize = 5 * 1024 * 1024;
-        if (selectedFile.size > maxSize) {
+        if (selectedFile.size > 5 * 1024 * 1024) {
             setSnackbarMessage('Ảnh không được vượt quá 5MB');
             setOpenSnackbar(true);
             return;
@@ -111,6 +163,39 @@ const UpdateProduct = () => {
         const reader = new FileReader();
         reader.onload = () => setImagePreview(reader.result);
         reader.readAsDataURL(selectedFile);
+    };
+
+    // Xử lý ảnh phụ
+    const handleSubImagesChange = (e) => {
+        const files = Array.from(e.target.files);
+        if (files.length > 5) {
+            setSnackbarMessage('Chỉ chọn tối đa 5 ảnh phụ');
+            setOpenSnackbar(true);
+            return;
+        }
+        const validTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif'];
+        for (let file of files) {
+            if (!validTypes.includes(file.type)) {
+                setSnackbarMessage('Chỉ chấp nhận ảnh JPG, PNG, GIF');
+                setOpenSnackbar(true);
+                return;
+            }
+            if (file.size > 5 * 1024 * 1024) {
+                setSnackbarMessage('Ảnh không được vượt quá 5MB');
+                setOpenSnackbar(true);
+                return;
+            }
+        }
+        setSubImages(files);
+
+        // Hiển thị preview
+        Promise.all(files.map(file => {
+            return new Promise(resolve => {
+                const reader = new FileReader();
+                reader.onload = () => resolve(reader.result);
+                reader.readAsDataURL(file);
+            });
+        })).then(images => setSubImagePreviews(images));
     };
 
     const handleSubmit = async (e) => {
@@ -128,7 +213,23 @@ const UpdateProduct = () => {
             Object.keys(product).forEach(key => {
                 formData.append(key, product[key]);
             });
+            // Gửi user_id nếu cần
+            const user_id = localStorage.getItem('user_id');
+            if (user_id) formData.append('user_id', user_id);
+
             if (mainImage) formData.append('image_url', mainImage);
+
+            // Nếu có chọn ảnh phụ mới thì gửi, nếu không thì giữ ảnh phụ cũ
+            if (subImages.length > 0) {
+                subImages.forEach(img => {
+                    formData.append('sub_images_urls', img);
+                });
+            } else if (oldSubImages.length > 0) {
+                // Nếu không chọn ảnh phụ mới, gửi lại link ảnh phụ cũ (nếu backend hỗ trợ)
+                oldSubImages.forEach(url => {
+                    formData.append('sub_images_urls', url);
+                });
+            }
 
             const token = localStorage.getItem('token');
             await updateProduct(id, formData, token);
@@ -173,21 +274,34 @@ const UpdateProduct = () => {
                         label="Thương hiệu"
                     >
                         {productBrands.map(brand => (
-                            <MenuItem key={brand._id} value={brand._id}>{brand.name}</MenuItem>
+                            <MenuItem key={brand._id} value={brand._id}>{brand.Brand_name || brand.name}</MenuItem>
                         ))}
                     </Select>
                 </FormControl>
 
                 <FormControl fullWidth sx={{ mb: 2 }}>
-                    <InputLabel>Danh mục</InputLabel>
+                    <InputLabel>Danh mục cha</InputLabel>
+                    <Select
+                        value={selectedPCParent}
+                        onChange={handlePCParentChange}
+                        label="Danh mục cha"
+                    >
+                        {pcParents.map(parent => (
+                            <MenuItem key={parent._id} value={parent._id}>{parent.category_name}</MenuItem>
+                        ))}
+                    </Select>
+                </FormControl>
+
+                <FormControl fullWidth sx={{ mb: 2 }} disabled={!selectedPCParent || pcChilds.length === 0}>
+                    <InputLabel>Danh mục con</InputLabel>
                     <Select
                         name="category_id"
                         value={product.category_id}
                         onChange={handleChange}
-                        label="Danh mục"
+                        label="Danh mục con"
                     >
                         {pcChilds.map(category => (
-                            <MenuItem key={category._id} value={category._id}>{category.name}</MenuItem>
+                            <MenuItem key={category._id} value={category._id}>{category.category_name}</MenuItem>
                         ))}
                     </Select>
                 </FormControl>
@@ -225,6 +339,20 @@ const UpdateProduct = () => {
                     )}
                 </Box>
 
+                <Box sx={{ mb: 2 }}>
+                    <Button variant="outlined" component="label" disabled={loading}>
+                        Chọn Tối Đa 5 Ảnh Phụ
+                        <input type="file" hidden accept="image/*" multiple onChange={handleSubImagesChange} />
+                    </Button>
+                    <Box sx={{ display: 'flex', gap: 1, mt: 2 }}>
+                        {(subImagePreviews.length > 0 ? subImagePreviews : oldSubImages).map((src, idx) => (
+                            <Box key={idx} component="img" src={typeof src === 'string' ? src : ''} alt={`sub-${idx}`} sx={{
+                                width: 80, height: 80, objectFit: 'cover', borderRadius: 1, border: '1px solid #eee'
+                            }} />
+                        ))}
+                    </Box>
+                </Box>
+
                 <Box sx={{ mt: 2 }}>
                     <Button variant="contained" color="primary" type="submit" disabled={loading} sx={{ mr: 2 }}>
                         {loading ? <CircularProgress size={24} /> : 'Cập Nhật'}
@@ -234,9 +362,17 @@ const UpdateProduct = () => {
                     </Button>
                 </Box>
             </form>
-            <Snackbar open={openSnackbar} autoHideDuration={6000} onClose={() => setOpenSnackbar(false)}>
-                <Alert onClose={() => setOpenSnackbar(false)}
-                    severity={snackbarMessage.includes('thành công') ? 'success' : 'error'}>
+            <Snackbar
+                open={openSnackbar}
+                autoHideDuration={6000}
+                onClose={() => setOpenSnackbar(false)}
+                anchorOrigin={{ vertical: 'top', horizontal: 'center' }}
+            >
+                <Alert
+                    onClose={() => setOpenSnackbar(false)}
+                    severity={snackbarMessage.includes('thành công') ? 'success' : 'error'}
+                    sx={{ width: '100%' }}
+                >
                     {snackbarMessage}
                 </Alert>
             </Snackbar>
