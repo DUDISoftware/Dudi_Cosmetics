@@ -17,6 +17,7 @@ import {
 import { useNavigate } from 'react-router-dom';
 import { addProduct } from '../../../api/productsApi';
 import { getProductBrands } from '../../../api/ProductBrandApi';
+import { getPCParents } from '../../../api/pcParentApi';
 import { getPCChilds } from '../../../api/pcChildApi';
 
 const AddProduct = () => {
@@ -34,11 +35,15 @@ const AddProduct = () => {
     });
     const [mainImage, setMainImage] = useState(null);
     const [imagePreview, setImagePreview] = useState(null);
+    const [subImages, setSubImages] = useState([]); // Thêm state cho ảnh phụ
+    const [subImagePreviews, setSubImagePreviews] = useState([]); // Xem trước ảnh phụ
     const [openSnackbar, setOpenSnackbar] = useState(false);
     const [snackbarMessage, setSnackbarMessage] = useState('');
     const [loading, setLoading] = useState(false);
     const [productBrands, setProductBrands] = useState([]);
+    const [pcParents, setPCParents] = useState([]);
     const [pcChilds, setPCChilds] = useState([]);
+    const [selectedPCParent, setSelectedPCParent] = useState('');
     const navigate = useNavigate();
 
     useEffect(() => {
@@ -47,8 +52,10 @@ const AddProduct = () => {
             try {
                 const brandsData = await getProductBrands(token);
                 setProductBrands(brandsData.data);
-                const categoriesData = await getPCChilds(token);
-                setPCChilds(categoriesData.data);
+                const parentsData = await getPCParents(token);
+                setPCParents(parentsData.data);
+                // Debug
+                console.log('PCParents:', parentsData.data);
             } catch (error) {
                 console.error('Lỗi khi lấy dữ liệu:', error);
             }
@@ -56,12 +63,40 @@ const AddProduct = () => {
         fetchData();
     }, []);
 
+    // Khi chọn PCParent thì load PCChild tương ứng
+    useEffect(() => {
+        const fetchChilds = async () => {
+            if (!selectedPCParent) {
+                setPCChilds([]);
+                setProduct(prev => ({ ...prev, category_id: '' }));
+                return;
+            }
+            const token = localStorage.getItem('token');
+            try {
+                const childsData = await getPCChilds(token);
+                // Debug
+                console.log('PCChilds:', childsData.data);
+                // Đảm bảo so sánh đúng kiểu
+                const filtered = childsData.data.filter(child => String(child.parent_id) === String(selectedPCParent));
+                setPCChilds(filtered);
+                setProduct(prev => ({ ...prev, category_id: '' }));
+            } catch (error) {
+                setPCChilds([]);
+            }
+        };
+        fetchChilds();
+    }, [selectedPCParent]);
+
     const handleChange = (e) => {
         const { name, value, type, checked } = e.target;
         setProduct(prev => ({
             ...prev,
             [name]: type === 'checkbox' ? checked : value
         }));
+    };
+
+    const handlePCParentChange = (e) => {
+        setSelectedPCParent(e.target.value);
     };
 
     const handleImageChange = (e) => {
@@ -86,6 +121,39 @@ const AddProduct = () => {
         reader.readAsDataURL(selectedFile);
     };
 
+    // Thêm hàm xử lý ảnh phụ
+    const handleSubImagesChange = (e) => {
+        const files = Array.from(e.target.files);
+        if (files.length > 5) {
+            setSnackbarMessage('Chỉ chọn tối đa 5 ảnh phụ');
+            setOpenSnackbar(true);
+            return;
+        }
+        const validTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif'];
+        for (let file of files) {
+            if (!validTypes.includes(file.type)) {
+                setSnackbarMessage('Chỉ chấp nhận ảnh JPG, PNG, GIF');
+                setOpenSnackbar(true);
+                return;
+            }
+            if (file.size > 5 * 1024 * 1024) {
+                setSnackbarMessage('Ảnh không được vượt quá 5MB');
+                setOpenSnackbar(true);
+                return;
+            }
+        }
+        setSubImages(files);
+
+        // Hiển thị preview
+        Promise.all(files.map(file => {
+            return new Promise(resolve => {
+                const reader = new FileReader();
+                reader.onload = () => resolve(reader.result);
+                reader.readAsDataURL(file);
+            });
+        })).then(images => setSubImagePreviews(images));
+    };
+
     const handleSubmit = async (e) => {
         e.preventDefault();
 
@@ -106,7 +174,11 @@ const AddProduct = () => {
             Object.keys(product).forEach(key => {
                 formData.append(key, product[key]);
             });
-            formData.append('image_url', mainImage); // Tên trường theo model/backend
+            formData.append('image_url', mainImage);
+            // Thêm các ảnh phụ
+            subImages.forEach((img, idx) => {
+                formData.append('sub_images_urls', img);
+            });
 
             const token = localStorage.getItem('token');
             await addProduct(formData, token);
@@ -148,21 +220,33 @@ const AddProduct = () => {
                         label="Thương hiệu"
                     >
                         {productBrands.map(brand => (
-                            <MenuItem key={brand._id} value={brand._id}>{brand.name}</MenuItem>
+                            <MenuItem key={brand._id} value={brand._id}>{brand.Brand_name}</MenuItem>
                         ))}
                     </Select>
                 </FormControl>
 
                 <FormControl fullWidth sx={{ mb: 2 }}>
-                    <InputLabel>Danh mục</InputLabel>
+                    <InputLabel>Danh mục cha</InputLabel>
+                    <Select
+                        value={selectedPCParent}
+                        onChange={handlePCParentChange}
+                        label="Danh mục cha"
+                    >
+                        {pcParents.map(parent => (
+                            <MenuItem key={parent._id} value={parent._id}>{parent.category_name}</MenuItem>
+                        ))}
+                    </Select>
+                </FormControl>
+                <FormControl fullWidth sx={{ mb: 2 }} disabled={!selectedPCParent || pcChilds.length === 0}>
+                    <InputLabel>Danh mục con</InputLabel>
                     <Select
                         name="category_id"
                         value={product.category_id}
                         onChange={handleChange}
-                        label="Danh mục"
+                        label="Danh mục con"
                     >
                         {pcChilds.map(category => (
-                            <MenuItem key={category._id} value={category._id}>{category.name}</MenuItem>
+                            <MenuItem key={category._id} value={category._id}>{category.category_name}</MenuItem>
                         ))}
                     </Select>
                 </FormControl>
@@ -198,6 +282,20 @@ const AddProduct = () => {
                             mt: 2, maxHeight: 200, objectFit: 'contain', display: 'block'
                         }} />
                     )}
+                </Box>
+
+                <Box sx={{ mb: 2 }}>
+                    <Button variant="outlined" component="label" disabled={loading}>
+                        Chọn Tối Đa 5 Ảnh Phụ
+                        <input type="file" hidden accept="image/*" multiple onChange={handleSubImagesChange} />
+                    </Button>
+                    <Box sx={{ display: 'flex', gap: 1, mt: 2 }}>
+                        {subImagePreviews.map((src, idx) => (
+                            <Box key={idx} component="img" src={src} alt={`sub-${idx}`} sx={{
+                                width: 80, height: 80, objectFit: 'cover', borderRadius: 1, border: '1px solid #eee'
+                            }} />
+                        ))}
+                    </Box>
                 </Box>
 
                 <Box sx={{ mt: 2 }}>

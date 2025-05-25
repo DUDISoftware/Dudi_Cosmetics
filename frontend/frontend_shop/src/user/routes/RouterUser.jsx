@@ -9,7 +9,7 @@ import ProductsDetails from "../views/Product/ProductsDetail";
 const RouterUser = [
   {
     path: "/",
-    children: [
+    children: [ 
       { path: "/", element: <Navigate to="/home" /> },
       { path: "/home", element: <Home /> },
       { path: "/products", element: <Products /> },
