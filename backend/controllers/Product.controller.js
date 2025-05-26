@@ -156,5 +156,33 @@ exports.getProductById = async (req, res) => {
   }
 };
 
-
+// Lấy chi tiết sản phẩm theo slug
+exports.getProductBySlug = async (req, res) => {
+  try {
+    const { slug } = req.params;
+    if (!slug) {
+      return res.status(400).json({
+        status: false,
+        message: "Slug sản phẩm không hợp lệ",
+      });
+    }
+    const product = await productService.getProductBySlugSv(slug);
+    if (!product) {
+      return res.status(404).json({
+        status: false,
+        message: "Không tìm thấy sản phẩm",
+      });
+    }
+    res.status(200).json({
+      status: true,
+      data: product,
+    });
+  } catch (error) {
+    console.error("Lỗi lấy chi tiết sản phẩm:", error.message);
+    res.status(500).json({
+      status: false,
+      message: "Lỗi server",
+    });
+  }
+};
 

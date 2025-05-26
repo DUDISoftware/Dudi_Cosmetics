@@ -123,3 +123,11 @@ try {
   throw new Error("Lỗi khi lấy chi tiết bài viết: " + error.message);
 }
 };
+
+exports.getPostBySlugSv = async (slug) => {
+  try {
+    return await Posts.findOne({ slug });
+  } catch (error) {
+    throw new Error("Lỗi khi lấy chi tiết bài viết theo slug: " + error.message);
+  }
+};

@@ -84,7 +84,19 @@ const Profile = () => {
           <ListItemText>Cài Đặt</ListItemText>
         </MenuItem>
         <Box mt={1} py={1} px={2}>
-          <Button to="/login" variant="outlined" color="primary" component={Link} fullWidth>
+          <Button
+            variant="outlined"
+            color="primary"
+            fullWidth
+            component={Link}
+            to="/login"
+            onClick={() => {
+              localStorage.removeItem("token");
+              localStorage.removeItem("role");
+              localStorage.removeItem("user_id");
+              localStorage.removeItem("fullname");
+            }}
+          >
             Đăng Xuất
           </Button>
         </Box>

@@ -1,141 +1,295 @@
 import React, { useEffect, useState } from "react";
+import { useParams, Link } from "react-router-dom";
+import { getProductById, getProducts } from "../../../api/productsApi";
+import { getProductBrands } from "../../../api/ProductBrandApi";
+import { getPCChildById } from "../../../api/pcChildApi";
+import { getPCParentById } from "../../../api/pcParentApi";
 import Header from "../../components/Header";
 import Footer from "../../components/Footer";
-import { Link, useParams } from "react-router-dom";
-import { ArrowRightIcon, SlidersHorizontal } from "lucide-react";
-import { FaHeart, FaShoppingCart, FaStar } from "react-icons/fa";
-import { getProductById } from "../../../api/productsApi";
-import ProposalProduct from "../../components/ProposalProduct";
+import { ArrowRightIcon } from "lucide-react";
 
-const brandLogos = [
-  { name: "Lifedoc", src: "/brands/lifedoc.png" },
-  { name: "Biore", src: "/brands/biore.png" },
-  { name: "Nivea", src: "/brands/nivea.png" },
-  { name: "Vichy", src: "/brands/vichy.png" },
-  { name: "Olay", src: "/brands/olay.png" },
-  { name: "Chanel", src: "/brands/chanel.png" },
-  { name: "Gucci", src: "/brands/gucci.png" },
-];
-
-const ProductsDetails = () => {
-  const { _id } = useParams();
+const ProductsDetail = () => {
+  const { slug } = useParams();
   const [product, setProduct] = useState(null);
+  const [brands, setBrands] = useState([]);
+  const [selectedImage, setSelectedImage] = useState("");
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
+  const [childCategory, setChildCategory] = useState(null);
+  const [parentCategory, setParentCategory] = useState(null);
+  const [relatedProducts, setRelatedProducts] = useState([]);
 
+  // Lấy danh sách brand
   useEffect(() => {
-    if (!_id) {
-      setError("Thiếu mã sản phẩm.");
-      setLoading(false);
-      return;
-    }
-
-    const fetchProduct = async () => {
+    const fetchBrands = async () => {
       try {
-        const response = await getProductById(_id);
-        if (response?.status) {
-          setProduct(response.data);
-          setError(null);
-        } else {
-          setError("Không tìm thấy sản phẩm.");
-        }
-      } catch (err) {
-        console.error("Lỗi khi tải sản phẩm:", err);
-        setError("Có lỗi xảy ra khi tải dữ liệu.");
-      } finally {
-        setLoading(false);
+        const data = await getProductBrands();
+        setBrands(Array.isArray(data.data) ? data.data : []);
+      } catch {
+        setBrands([]);
       }
     };
+    fetchBrands();
+  }, []);
 
-    fetchProduct();
-  }, [_id]);
+  // Lấy chi tiết sản phẩm theo slug nhưng dùng getProductById
+  useEffect(() => {
+    const fetchProduct = async () => {
+      setLoading(true);
+      try {
+        const allProducts = await getProducts();
+        const found = allProducts?.data?.find((p) => p.slug === slug);
+        if (found && found._id) {
+          const data = await getProductById(found._id);
+          if (data && data.data) {
+            setProduct(data.data);
+            setSelectedImage(data.data.image_url || "");
+            // Lấy thông tin danh mục con
+            if (data.data.category_id) {
+              const childRes = await getPCChildById(data.data.category_id);
+              setChildCategory(childRes?.data || null);
+              // Lấy thông tin danh mục cha
+              if (childRes?.data?.parent_id) {
+                const parentRes = await getPCParentById(childRes.data.parent_id);
+                setParentCategory(parentRes?.data || null);
+              } else {
+                setParentCategory(null);
+              }
+            } else {
+              setChildCategory(null);
+              setParentCategory(null);
+            }
+          } else {
+            setProduct(null);
+            setChildCategory(null);
+            setParentCategory(null);
+          }
+        } else {
+          setProduct(null);
+          setChildCategory(null);
+          setParentCategory(null);
+        }
+      } catch (err) {
+        setProduct(null);
+        setChildCategory(null);
+        setParentCategory(null);
+      }
+      setLoading(false);
+    };
+    if (slug) fetchProduct();
+  }, [slug]);
 
-  if (loading)
-    return <div className="text-center mt-10">Đang tải thông tin sản phẩm...</div>;
-  if (error)
-    return <div className="text-center mt-10 text-red-500">{error}</div>;
-  if (!product)
-    return <div className="text-center mt-10">Không có dữ liệu sản phẩm.</div>;
+  // Lấy sản phẩm liên quan
+  useEffect(() => {
+    const fetchRelated = async () => {
+      if (product && product.category_id) {
+        try {
+          const allProducts = await getProducts();
+          const related = allProducts?.data
+            ?.filter(
+              (p) =>
+                p.category_id === product.category_id &&
+                p._id !== product._id
+            )
+            .slice(0, 4);
+          setRelatedProducts(related);
+        } catch {
+          setRelatedProducts([]);
+        }
+      } else {
+        setRelatedProducts([]);
+      }
+    };
+    fetchRelated();
+  }, [product]);
+
+  if (loading) {
+    return (
+      <>
+        <Header />
+        <div className="w-full min-h-screen flex items-center justify-center bg-[#f7f7f7]">
+          <div className="text-lg">Đang tải chi tiết sản phẩm...</div>
+        </div>
+        <Footer />
+      </>
+    );
+  }
+
+  if (!product) {
+    return (
+      <>
+        <Header />
+        <div className="w-full min-h-screen flex items-center justify-center bg-[#f7f7f7]">
+          <div className="text-lg text-red-600">Không tìm thấy sản phẩm.</div>
+        </div>
+        <Footer />
+      </>
+    );
+  }
+
+  // Lấy brand hiện tại
+  const currentBrand = brands.find(
+    (b) => b._id === (product.brand_id?._id || product.brand_id)
+  );
 
   return (
     <>
       <Header />
+      <div className="w-full bg-[#f7f7f7] min-h-screen pb-10">
+        <div className="w-[75%] mx-auto px-6 py-8">
+          {/* Breadcrumb */}
+          <nav className="flex items-center space-x-2 mb-6">
+            <Link to="/" className="hover:text-red-600 text-xl">
+              Trang chủ
+            </Link>
+            <ArrowRightIcon />
+            <Link to="/products" className="hover:text-red-600 text-xl">
+              Sản phẩm
+            </Link>
+            <ArrowRightIcon />
+            <span className="text-red-600 text-xl">{product.product_name}</span>
+          </nav>
 
-      <div className="w-[75%] mx-auto px-6 py-12 text-sm text-gray-700">
-        <nav className="flex items-center space-x-2">
-          <Link to="/" className="hover:text-red-600 text-xl">Trang chủ</Link>
-          <ArrowRightIcon />
-          <span className="text-red-600 text-xl">Sản phẩm</span>
-        </nav>
-      </div>
-
-      {/* Brand Filter */}
-      <div className="w-[75%] mx-auto px-6 mb-4">
-        <div className="flex items-center gap-2 mb-8">
-          <SlidersHorizontal className="w-6 h-6 text-gray-600" />
-          <span className="text-gray-700">Bộ lọc</span>
-        </div>
-        <div className="flex gap-16 items-center overflow-x-auto">
-          {brandLogos.map((brand) => (
-            <img
-              key={brand.name}
-              src={brand.src}
-              alt={brand.name}
-              className="w-40 h-20 object-contain hover:scale-105 transition-transform"
-            />
-          ))}
-        </div>
-      </div>
-
-      {/* Product Details */}
-      <div className="w-[75%] mx-auto px-6 py-12 grid md:grid-cols-2 gap-10 text-[#333] font-[Arial]">
-        {/* Images */}
-        <div className="flex flex-col items-center">
-          <img
-            src={product.image_url || "/default-image.jpg"}
-            alt={product.product_name || "Sản phẩm"}
-            className="w-full h-auto object-contain rounded-xl border mb-4"
-          />
-          <div className="grid grid-cols-4 gap-2">
-            {product.sub_images_urls?.length ? (
-              product.sub_images_urls.map((img, index) => (
+          {/* Chi tiết sản phẩm */}
+          <div className="bg-white rounded-lg shadow p-6 flex flex-col md:flex-row gap-8">
+            {/* Ảnh sản phẩm */}
+            <div className="flex flex-col gap-4 md:w-1/2">
+              <div className="w-full aspect-square bg-gray-50 rounded-lg flex items-center justify-center border">
                 <img
-                  key={index}
-                  src={img}
-                  alt={`thumb-${index}`}
-                  className="w-full border-[2px] border-gray-300 p-1 rounded-md hover:border-red-500 cursor-pointer"
+                  src={selectedImage}
+                  alt={product.product_name}
+                  className="max-h-[350px] object-contain"
                 />
-              ))
-            ) : (
-              <p>Không có hình ảnh phụ</p>
-            )}
-          </div>
-        </div>
+              </div>
+              <div className="flex gap-2 mt-2">
+                {[product.image_url, ...(product.sub_images_urls || [])].map(
+                  (img, idx) => (
+                    <img
+                      key={idx}
+                      src={img}
+                      alt={`sub-${idx}`}
+                      className={`w-16 h-16 object-contain rounded border cursor-pointer ${selectedImage === img ? "ring-2 ring-red-500" : ""
+                        }`}
+                      onClick={() => setSelectedImage(img)}
+                    />
+                  )
+                )}
+              </div>
+            </div>
 
-        {/* Info */}
-        <div className="text-sm">
-          <h2 className="text-xl font-semibold uppercase leading-snug mb-3">
-            {product.product_name}
-          </h2>
-          <p className="text-[#d0021b] text-2xl font-bold mb-2">
-            {product.base_price?.toLocaleString() || "0"}₫
-          </p>
-          <div className="flex items-center text-yellow-500 mb-2 text-base">
-            {[...Array(5)].map((_, i) => (
-              <FaStar key={i} className="mr-1" />
-            ))}
-            <span className="text-black ml-2 mr-2">121 Đánh Giá</span>|
-            <span className="ml-2 text-black">140 Đã Bán</span>
+            {/* Thông tin sản phẩm */}
+            <div className="flex-1 flex flex-col gap-4">
+              <h1 className="text-2xl font-bold mb-2">
+                {product.product_name}
+              </h1>
+              <div className="flex items-center gap-4 mb-2">
+                {currentBrand && (
+                  <div className="flex items-center gap-2">
+                    <img
+                      src={currentBrand.image_url}
+                      alt={currentBrand.Brand_name}
+                      className="w-8 h-5 object-contain"
+                    />
+                    <span className="text-base font-medium">
+                      {currentBrand.Brand_name}
+                    </span>
+                  </div>
+                )}
+                {product.is_hot && (
+                  <span className="bg-yellow-100 text-yellow-700 px-2 py-1 rounded text-xs font-semibold">
+                    HOT
+                  </span>
+                )}
+                {product.is_most_viewed && (
+                  <span className="bg-blue-100 text-blue-700 px-2 py-1 rounded text-xs font-semibold">
+                    Xem nhiều
+                  </span>
+                )}
+              </div>
+              <div className="text-3xl text-red-600 font-bold mb-2">
+                {product.base_price?.toLocaleString()}₫
+              </div>
+              <div className="text-gray-700 mb-2">
+                {product.short_description}
+              </div>
+              <div className="mb-2">
+                <span className="font-semibold">Danh mục cha:</span>{" "}
+                <span className="text-gray-600">
+                  {parentCategory?.category_name || ""}
+                </span>
+              </div>
+              <div className="mb-2">
+                <span className="font-semibold">Danh mục con:</span>{" "}
+                <span className="text-gray-600">
+                  {childCategory?.category_name || ""}
+                </span>
+              </div>
+              <div className="mb-2">
+                <span className="font-semibold">Số lượng trong kho:</span>{" "}
+                <span className="text-gray-600">
+                  {product.store_quantity}
+                </span>
+              </div>
+              <div className="mb-2">
+                <span className="font-semibold">Ngày tạo:</span>{" "}
+                <span className="text-gray-600">
+                  {product.created_at
+                    ? new Date(product.created_at).toLocaleDateString()
+                    : ""}
+                </span>
+              </div>
+              <div className="mb-2">
+                <span className="font-semibold">Mô tả chi tiết:</span>
+                <div className="text-gray-700 mt-1 whitespace-pre-line">
+                  {product.long_description}
+                </div>
+              </div>
+              <button className="mt-4 bg-red-600 text-white px-6 py-2 rounded font-semibold hover:bg-red-700 transition w-fit">
+                Thêm vào giỏ hàng
+              </button>
+            </div>
           </div>
-          <p className="text-gray-600 mt-4">{product.description}</p>
         </div>
       </div>
-
-      {/* Related Products */}
-      <ProposalProduct />
+      {/* Sản phẩm liên quan */}
+      <div className="w-[75%] mx-auto mt-10">
+        <h2 className="text-2xl font-semibold mb-6 text-center">Sản Phẩm Liên Quan</h2>
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-6">
+          {Array.isArray(relatedProducts) && relatedProducts.length > 0 ? (
+            relatedProducts.map((item) => (
+              <Link
+                to={`/products/${item.slug}`}
+                key={item._id}
+                className="bg-white rounded-lg shadow hover:shadow-lg transition p-4 flex flex-col items-center"
+              >
+                <div className="w-full aspect-square bg-gray-50 rounded flex items-center justify-center mb-3 border">
+                  <img
+                    src={item.image_url}
+                    alt={item.product_name}
+                    className="max-h-32 object-contain"
+                  />
+                </div>
+                <div className="text-gray-500 text-xs mb-1">
+                  {/* Hiển thị tên danh mục con của sản phẩm liên quan nếu có */}
+                  {childCategory?.category_name || ""}
+                </div>
+                <div className="font-semibold text-base mb-1 text-center line-clamp-2">
+                  {item.product_name}
+                </div>
+                <div className="text-red-600 font-bold mb-1">
+                  {item.base_price?.toLocaleString()}₫
+                </div>
+              </Link>
+            ))
+          ) : (
+            <div className="col-span-4 text-center text-gray-500">
+              Không có sản phẩm liên quan.
+            </div>
+          )}
+        </div>
+      </div>
       <Footer />
     </>
   );
 };
 
-export default ProductsDetails;
+export default ProductsDetail;

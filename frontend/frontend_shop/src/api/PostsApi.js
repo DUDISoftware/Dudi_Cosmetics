@@ -33,17 +33,17 @@ export const getPosts = (token) =>
 // Lấy chi tiết Posts theo ID
 export const getPostById = (id, token) =>
   apiRequest("get", `/Posts/Posts-detail/${id}`, {}, token);
-
+// Lấy chi tiết Posts theo slug
+export const getPostBySlug = (slug, token) =>
+  apiRequest("get", `/Posts/Posts-detail-by-slug/${slug}`, {}, token);
 // Thêm Posts mới
 export const addPost = async (formData, token) => {
   return apiRequest("post", "/Posts/add-Posts", formData, token);
 };
-
 // Cập nhật Posts
 export const updatePost = async (id, formData, token) => {
   return apiRequest("put", `/Posts/update-Posts/${id}`, formData, token);
 };
-
 // Xóa Posts
 export const deletePost = (id, token) =>
   apiRequest("delete", `/Posts/delete-Posts/${id}`, {}, token);

@@ -47,3 +47,7 @@ export const updateProduct = async (id, formData, token) => {
 // Xóa sản phẩm
 export const deleteProduct = (id, token) =>
   apiRequest("delete", `/Product/delete-products/${id}`, {}, token);
+
+// Lấy chi tiết sản phẩm theo slug
+export const getProductBySlug = (slug, token) =>
+  apiRequest("get", `/Product/products-detail-by-slug/${slug}`, {}, token);
