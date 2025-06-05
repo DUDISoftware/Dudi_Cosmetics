@@ -10,9 +10,8 @@ exports.createPostSv = async (postData, file) => {
   try {
     let errors = [];
 
-    // Kiểm tra và chuyển đổi CategoryP_id
     if (!mongoose.Types.ObjectId.isValid(postData.CategoryP_id)) {
-      errors.push("PostCategory_id không tồn tại");
+      errors.push("PostCategory_id không hợp lệ");
     } else {
       const categoryExists = await PostCategory.findById(postData.CategoryP_id);
       if (!categoryExists) {
@@ -20,9 +19,8 @@ exports.createPostSv = async (postData, file) => {
       }
     }
 
-    // Kiểm tra và chuyển đổi user_id
     if (!mongoose.Types.ObjectId.isValid(postData.user_id)) {
-      errors.push("user_id không tồn tại");
+      errors.push("user_id không hợp lệ");
     } else {
       const userExists = await User.findById(postData.user_id);
       if (!userExists) {
@@ -30,7 +28,6 @@ exports.createPostSv = async (postData, file) => {
       }
     }
 
-    // Nếu có lỗi, trả về thông báo lỗi
     if (errors.length > 0) {
       return {
         status: false,
@@ -38,15 +35,18 @@ exports.createPostSv = async (postData, file) => {
       };
     }
 
-    // Xử lý ảnh nếu có file
-    if (file && file.path) {
-      const uploadResult = await cloudinary.uploader.upload(file.path, {
-        folder: 'posts', // Thư mục lưu trữ trên Cloudinary
-      });
-      postData.image = uploadResult.secure_url; // Lưu URL ảnh vào postData
+    if (!file || !file.path) {
+      return {
+        status: false,
+        message: "Thiếu file ảnh",
+      };
     }
 
-    // Tạo bài viết mới
+    const uploadResult = await cloudinary.uploader.upload(file.path, {
+      folder: 'posts',
+    });
+    postData.image_url = uploadResult.secure_url;
+
     const post = new Posts(postData);
     const savedPost = await post.save();
     return {
@@ -54,16 +54,12 @@ exports.createPostSv = async (postData, file) => {
       data: savedPost,
     };
   } catch (error) {
-    // Kiểm tra lỗi unique
     if (error.name === "ValidationError") {
       return {
         status: false,
-        message: Object.values(error.errors)
-          .map((err) => err.message)
-          .join(", "),
+        message: Object.values(error.errors).map((err) => err.message).join(", "),
       };
     }
-
     throw new Error("Lỗi khi tạo bài viết: " + error.message);
   }
 };
@@ -76,15 +72,14 @@ exports.updatePostSv = async (id, updateData, file) => {
       throw new Error("Không tìm thấy bài viết");
     }
 
-    // Nếu có file mới, xử lý cập nhật ảnh
     if (file && file.path) {
-      const oldPublicId = post.image.replace(/^.*\/upload\/(?:v\d+\/)?/, '').replace(/\.[^/.]+$/, '');
+      const oldPublicId = post.image_url.replace(/^.*\/upload\/(?:v\d+\/)?/, '').replace(/\.[^/.]+$/, '');
       const uploadResult = await updateImageOnCloudinary(
-        oldPublicId,  // Public ID của ảnh cũ
-        file.path,    // Đường dẫn file mới
-        'posts'       // Thư mục trên Cloudinary
+        oldPublicId,
+        file.path,
+        'posts'
       );
-      updateData.image = uploadResult.secure_url; // Cập nhật URL ảnh mới
+      updateData.image_url = uploadResult.secure_url;
     }
 
     return await Posts.findByIdAndUpdate(id, updateData, { new: true, runValidators: true });
@@ -101,18 +96,15 @@ exports.deletePostSv = async (id) => {
       throw new Error("Không tìm thấy bài viết");
     }
 
-    // Lấy Public ID từ URL ảnh
-    const oldPublicId = post.image.replace(/^.*\/upload\/(?:v\d+\/)?/, '').replace(/\.[^/.]+$/, '');
-
-    // Xóa ảnh trên Cloudinary
+    const oldPublicId = post.image_url.replace(/^.*\/upload\/(?:v\d+\/)?/, '').replace(/\.[^/.]+$/, '');
     await cloudinary.uploader.destroy(oldPublicId, { invalidate: true });
 
-    // Xóa bài viết trong cơ sở dữ liệu
     return await Posts.findByIdAndDelete(id);
   } catch (error) {
     throw new Error("Lỗi khi xóa bài viết: " + error.message);
   }
 };
+
 
 // Lấy tất cả bài viết
 exports.getAllPostSv = async (filters = {}) => {
@@ -130,4 +122,12 @@ try {
 } catch (error) {
   throw new Error("Lỗi khi lấy chi tiết bài viết: " + error.message);
 }
+};
+
+exports.getPostBySlugSv = async (slug) => {
+  try {
+    return await Posts.findOne({ slug });
+  } catch (error) {
+    throw new Error("Lỗi khi lấy chi tiết bài viết theo slug: " + error.message);
+  }
 };

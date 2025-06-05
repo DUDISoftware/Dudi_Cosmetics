@@ -6,29 +6,50 @@ import {
     Button,
     Snackbar,
     Alert,
+    FormControl,
+    InputLabel,
+    Select,
+    MenuItem,
 } from '@mui/material';
 import { useParams, useNavigate } from 'react-router-dom';
+import { getPostsCategoryById, updatePostsCategory } from '../../../api/PostsCategoryApi';
 
 const UpdatePostsCategory = () => {
     const { id } = useParams();
     const navigate = useNavigate();
     const [category, setCategory] = useState({
         title: '',
-        slug: '',
-        status: '',
+        status: 'true',
     });
     const [openSnackbar, setOpenSnackbar] = useState(false);
     const [snackbarMessage, setSnackbarMessage] = useState('');
 
     useEffect(() => {
-        const token = localStorage.getItem('token');
-        fetch(`http://localhost:5000/api/PostsCategory/PostsCategory-detail/${id}`, {
-            headers: { Authorization: `Bearer ${token}` },
-        })
-            .then((res) => res.json())
-            .then((data) => {
-                if (data.status) setCategory(data.data);
-            });
+        const fetchCategory = async () => {
+            const token = localStorage.getItem('token');
+            if (!token) {
+                setSnackbarMessage('Token không tồn tại. Vui lòng đăng nhập lại.');
+                setOpenSnackbar(true);
+                return;
+            }
+            try {
+                const data = await getPostsCategoryById(id, token);
+                if (data.status) {
+                    setCategory({
+                        title: data.data.title || '',
+                        slug: data.data.slug || '',
+                        status: data.data.status === true || data.data.status === 'true' ? 'true' : 'false',
+                    });
+                } else {
+                    setSnackbarMessage('Không thể lấy chi tiết danh mục: ' + data.message);
+                    setOpenSnackbar(true);
+                }
+            } catch (error) {
+                setSnackbarMessage('Lỗi khi lấy chi tiết danh mục: ' + error.message);
+                setOpenSnackbar(true);
+            }
+        };
+        fetchCategory();
     }, [id]);
 
     const handleChange = (e) => {
@@ -39,27 +60,27 @@ const UpdatePostsCategory = () => {
         }));
     };
 
-    const handleSubmit = (e) => {
+    const handleSubmit = async (e) => {
         e.preventDefault();
         const token = localStorage.getItem('token');
-        fetch(`http://localhost:5000/api/PostsCategory/update-PostsCategory/${id}`, {
-            method: 'PUT',
-            headers: {
-                'Content-Type': 'application/json',
-                Authorization: `Bearer ${token}`,
-            },
-            body: JSON.stringify(category),
-        })
-            .then((res) => res.json())
-            .then((data) => {
+        try {
+            const payload = {
+                ...category,
+                status: category.status,
+            };
+            const data = await updatePostsCategory(id, payload, token);
+            if (data.status) {
                 setSnackbarMessage('Cập nhật danh mục thành công!');
                 setOpenSnackbar(true);
-                setTimeout(() => navigate('/admin/PostsCategory-list'), 1000);
-            })
-            .catch((error) => {
-                setSnackbarMessage('Cập nhật thất bại: ' + error.message);
+                setTimeout(() => navigate('/admin/PostsCategory/PostsCategory-list'), 1000);
+            } else {
+                setSnackbarMessage('Không thể cập nhật danh mục: ' + data.message);
                 setOpenSnackbar(true);
-            });
+            }
+        } catch (error) {
+            setSnackbarMessage('Lỗi khi cập nhật danh mục: ' + (error.response?.data?.message || error.message));
+            setOpenSnackbar(true);
+        }
     };
 
     const handleCloseSnackbar = () => {
@@ -74,40 +95,40 @@ const UpdatePostsCategory = () => {
             <form onSubmit={handleSubmit}>
                 <TextField
                     fullWidth
-                    label="Tiêu Đề"
+                    label="Tên Danh Mục"
                     name="title"
                     value={category.title}
                     onChange={handleChange}
                     required
                     sx={{ mb: 2 }}
                 />
-                <TextField
-                    fullWidth
-                    label="Slug"
-                    name="slug"
-                    value={category.slug}
-                    onChange={handleChange}
-                    required
-                    sx={{ mb: 2 }}
-                />
-                <TextField
-                    fullWidth
-                    label="Trạng Thái"
-                    name="status"
-                    value={category.status}
-                    onChange={handleChange}
-                    required
-                    sx={{ mb: 2 }}
-                />
+                <FormControl fullWidth sx={{ mb: 2 }}>
+                    <InputLabel id="status-label">Trạng Thái</InputLabel>
+                    <Select
+                        labelId="status-label"
+                        name="status"
+                        value={category.status}
+                        label="Trạng Thái"
+                        onChange={handleChange}
+                    >
+                        <MenuItem value="true">Hiển thị</MenuItem>
+                        <MenuItem value="false">Ẩn</MenuItem>
+                    </Select>
+                </FormControl>
                 <Button variant="contained" color="primary" type="submit" sx={{ mr: 2 }}>
                     Cập Nhật
                 </Button>
-                <Button variant="outlined" color="secondary" onClick={() => navigate('/admin/PostsCategory-list')}>
+                <Button variant="outlined" color="secondary" onClick={() => navigate('/admin/PostsCategory/PostsCategory-list')}>
                     Quay Lại
                 </Button>
             </form>
-            <Snackbar open={openSnackbar} autoHideDuration={6000} onClose={handleCloseSnackbar}>
-                <Alert onClose={handleCloseSnackbar} severity={snackbarMessage.includes('thất bại') || snackbarMessage.includes('lỗi') ? 'error' : 'success'}>
+            <Snackbar
+                open={openSnackbar}
+                autoHideDuration={6000}
+                onClose={handleCloseSnackbar}
+                anchorOrigin={{ vertical: 'top', horizontal: 'center' }} // Thông báo ở giữa phía trên
+            >
+                <Alert onClose={handleCloseSnackbar} severity={snackbarMessage.includes('không thể') || snackbarMessage.toLowerCase().includes('lỗi') ? 'error' : 'success'}>
                     {snackbarMessage}
                 </Alert>
             </Snackbar>

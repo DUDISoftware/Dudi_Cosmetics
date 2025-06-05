@@ -1,10 +1,24 @@
-import React from "react";
+import React, { lazy, Suspense } from "react";
 import { Navigate } from "react-router-dom";
 import Home from "../views/Home";
-import Products from "../views/Product/Products";
 import Login from "../views/Authorization/login";
 import Register from "../views/Authorization/register";
-import ProductsDetails from "../views/Product/ProductsDetail";
+
+// Loadable wrapper
+const Loadable = (Component) => (props) =>
+(
+  <Suspense fallback={<div>Đang tải...</div>}>
+    <Component {...props} />
+  </Suspense>
+);
+
+/* ****Pages Product***** */
+const ProductsList = Loadable(lazy(() => import('../views/Product/Products')));
+const ProductsDetail = Loadable(lazy(() => import('../views/Product/ProductsDetail')));
+
+/* ****Pages Posts***** */
+const PostsList = Loadable(lazy(() => import('../views/Posts/Posts-list')));
+const PostsDetail = Loadable(lazy(() => import('../views/Posts/Posts-detail')));
 
 const RouterUser = [
   {
@@ -12,10 +26,16 @@ const RouterUser = [
     children: [
       { path: "/", element: <Navigate to="/home" /> },
       { path: "/home", element: <Home /> },
-      { path: "/products", element: <Products /> },
       { path: "/login", element: <Login /> },
       { path: "/register", element: <Register /> },
-  { path: "/product/:_id", element: <ProductsDetails  /> },
+
+      // Product routes
+      { path: "/products", element: <ProductsList /> },
+      { path: "/products/:slug", element: <ProductsDetail /> },
+
+      // Posts routes
+      { path: "/Posts/", element: <PostsList /> },
+      { path: "/Posts/:slug", element: <PostsDetail /> },
     ],
   },
 ];

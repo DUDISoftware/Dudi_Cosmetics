@@ -1,6 +1,7 @@
 const ProductBrand = require('../models/ProductBrand.model');
 const cloudinary = require('../config/cloudinary.config');
 const { updateImageOnCloudinary } = require('../utils/cloudinary.util');
+const toSlug = require('../utils/slug.util');
 
 // Tạo thương hiệu sản phẩm mới
 exports.createProductBrandSv = async (brandData, file) => {
@@ -9,15 +10,13 @@ exports.createProductBrandSv = async (brandData, file) => {
       throw new Error("File không hợp lệ");
     }
 
-    // Tải ảnh lên Cloudinary
     const uploadResult = await cloudinary.uploader.upload(file.path, {
-      folder: 'product_brands', // Thư mục lưu trữ trên Cloudinary
+      folder: 'productbrands',
     });
 
-    // Lưu URL ảnh từ Cloudinary vào brandData
-    brandData.image = uploadResult.secure_url;
+    brandData.image_url = uploadResult.secure_url;
+    brandData.slug = toSlug(brandData.Brand_name);
 
-    // Tạo thương hiệu mới trong MongoDB
     const brand = new ProductBrand(brandData);
     return await brand.save();
   } catch (error) {
@@ -37,15 +36,18 @@ exports.updateProductBrandSv = async (id, updateData, file) => {
       throw new Error("Không tìm thấy thương hiệu sản phẩm");
     }
 
-    // Nếu có file mới, xử lý cập nhật ảnh
+    if (updateData.Brand_name) {
+      updateData.slug = toSlug(updateData.Brand_name);
+    }
+
     if (file && file.path) {
-      const oldPublicId = brand.image.replace(/^.*\/upload\/(?:v\d+\/)?/, '').replace(/\.[^/.]+$/, '');
+      const oldPublicId = brand.image_url.replace(/^.*\/upload\/(?:v\d+\/)?/, '').replace(/\.[^/.]+$/, '');
       const uploadResult = await updateImageOnCloudinary(
-        oldPublicId,  // Public ID của ảnh cũ
-        file.path,    // Đường dẫn file mới
-        'product_brands' // Thư mục trên Cloudinary
+        oldPublicId,
+        file.path,
+        'productbrands'
       );
-      updateData.image = uploadResult.secure_url; // Cập nhật URL ảnh mới
+      updateData.image_url = uploadResult.secure_url;
     }
 
     return await ProductBrand.findByIdAndUpdate(id, updateData, { new: true, runValidators: true });
@@ -62,13 +64,9 @@ exports.deleteProductBrandSv = async (id) => {
       throw new Error("Không tìm thấy thương hiệu sản phẩm");
     }
 
-    // Lấy Public ID từ URL ảnh
-    const oldPublicId = brand.image.replace(/^.*\/upload\/(?:v\d+\/)?/, '').replace(/\.[^/.]+$/, '');
-
-    // Xóa ảnh trên Cloudinary
+    const oldPublicId = brand.image_url.replace(/^.*\/upload\/(?:v\d+\/)?/, '').replace(/\.[^/.]+$/, '');
     await cloudinary.uploader.destroy(oldPublicId, { invalidate: true });
 
-    // Xóa thương hiệu trong cơ sở dữ liệu
     return await ProductBrand.findByIdAndDelete(id);
   } catch (error) {
     throw new Error("Lỗi khi xóa thương hiệu sản phẩm: " + error.message);

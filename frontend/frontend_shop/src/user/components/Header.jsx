@@ -123,7 +123,7 @@ const Header = () => {
                   Sản Phẩm
                 </NavLink>
                 <NavLink
-                  to="/news"
+                  to="/Posts"
                   className={({ isActive }) =>
                     isActive
                       ? "text-red-600 font-semibold"
@@ -133,7 +133,7 @@ const Header = () => {
                   Tin Tức
                 </NavLink>
                 <NavLink
-                  to="/contact"
+                  to="/Posts"
                   className={({ isActive }) =>
                     isActive
                       ? "text-red-600 font-semibold"
@@ -167,9 +167,8 @@ const Header = () => {
         </div>
       </header>
       <div
-        className={`${
-          isMenuOpen ? "translate-x-0" : "-translate-x-full"
-        } fixed top-0 left-0 w-[250px] h-full bg-white shadow-lg transition-all duration-300 z-20`}
+        className={`${isMenuOpen ? "translate-x-0" : "-translate-x-full"
+          } fixed top-0 left-0 w-[250px] h-full bg-white shadow-lg transition-all duration-300 z-20`}
       >
         <div className="flex justify-end p-4">
           <button onClick={toggleMenu} className="text-gray-600">

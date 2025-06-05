@@ -5,7 +5,7 @@ backend/node_modules/
 # Bỏ qua file .env
 frontend/.env
 backend/.env
-
+/frontend/frontend_shop/.env
 # Bỏ qua file log
 *.log
 

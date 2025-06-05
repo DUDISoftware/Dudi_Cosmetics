@@ -8,6 +8,7 @@ import {
     Alert,
 } from '@mui/material';
 import { useNavigate } from 'react-router-dom';
+import { addVoucher } from '../../../api/voucherApi';
 
 const AddVouchers = () => {
     const [voucher, setVoucher] = useState({
@@ -22,38 +23,26 @@ const AddVouchers = () => {
     const [snackbarMessage, setSnackbarMessage] = useState('');
     const navigate = useNavigate();
 
+    // Xử lý thay đổi của các trường trong form
     const handleChange = (e) => {
         const { name, value } = e.target;
         setVoucher({ ...voucher, [name]: value });
     };
 
-    const handleSubmit = (e) => {
+    // Xử lý khi submit form
+    const handleSubmit = async (e) => {
         e.preventDefault();
         const token = localStorage.getItem('token');
 
-        fetch('http://localhost:5000/api/Vouchers/add-Vouchers', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                Authorization: `Bearer ${token}`,
-            },
-            body: JSON.stringify(voucher),
-        })
-            .then((response) => {
-                if (!response.ok) {
-                    throw new Error(`Error! status: ${response.status}`);
-                }
-                return response.json();
-            })
-            .then((data) => {
-                setSnackbarMessage('Voucher added successfully!');
-                setOpenSnackbar(true);
-                navigate('/admin/voucherlist'); // Redirect to voucher list after successful addition
-            })
-            .catch((error) => {
-                setSnackbarMessage(`Failed to add voucher: ${error.message}`);
-                setOpenSnackbar(true);
-            });
+        try {
+            const data = await addVoucher(voucher, token);
+            setSnackbarMessage('Thêm voucher thành công!');
+            setOpenSnackbar(true);
+            navigate('/admin/voucherlist'); // Điều hướng về danh sách voucher sau khi thêm thành công
+        } catch (error) {
+            setSnackbarMessage(`Không thể thêm voucher: ${error.message}`);
+            setOpenSnackbar(true);
+        }
     };
 
     const handleCloseSnackbar = () => {
@@ -139,7 +128,7 @@ const AddVouchers = () => {
                 </Button>
             </form>
             <Snackbar open={openSnackbar} autoHideDuration={6000} onClose={handleCloseSnackbar}>
-                <Alert onClose={handleCloseSnackbar} severity={snackbarMessage.includes('Failed') ? 'error' : 'success'}>
+                <Alert onClose={handleCloseSnackbar} severity={snackbarMessage.includes('Không thể') ? 'error' : 'success'}>
                     {snackbarMessage}
                 </Alert>
             </Snackbar>

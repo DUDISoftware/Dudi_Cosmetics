@@ -6,14 +6,18 @@ import {
     Button,
     Snackbar,
     Alert,
+    FormControl,
+    InputLabel,
+    Select,
+    MenuItem,
 } from '@mui/material';
 import { useNavigate } from 'react-router-dom';
+import { addPostsCategory } from '../../../api/PostsCategoryApi';
 
 const AddPostsCategory = () => {
     const [category, setCategory] = useState({
         title: '',
-        slug: '',
-        status: '',
+        status: 'true', // 'true': Hiển thị, 'false': Ẩn
     });
     const [openSnackbar, setOpenSnackbar] = useState(false);
     const [snackbarMessage, setSnackbarMessage] = useState('');
@@ -21,35 +25,28 @@ const AddPostsCategory = () => {
 
     const handleChange = (e) => {
         const { name, value } = e.target;
-        setCategory({ ...category, [name]: value });
+        setCategory({
+            ...category,
+            [name]: value,
+        });
     };
 
-    const handleSubmit = (e) => {
+    const handleSubmit = async (e) => {
         e.preventDefault();
         const token = localStorage.getItem('token');
-        fetch('http://localhost:5000/api/PostsCategory/add-PostsCategory', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                Authorization: `Bearer ${token}`,
-            },
-            body: JSON.stringify(category),
-        })
-            .then((response) => {
-                if (!response.ok) {
-                    throw new Error(`Lỗi! trạng thái: ${response.status}`);
-                }
-                return response.json();
-            })
-            .then((data) => {
-                setSnackbarMessage('Thêm danh mục thành công!');
-                setOpenSnackbar(true);
-                setTimeout(() => navigate('/admin/PostsCategory-list'), 1000);
-            })
-            .catch((error) => {
-                setSnackbarMessage('Thêm thất bại: ' + error.message);
-                setOpenSnackbar(true);
-            });
+        try {
+            const payload = {
+                ...category,
+                status: category.status,
+            };
+            await addPostsCategory(payload, token);
+            setSnackbarMessage('Thêm danh mục bài viết thành công!');
+            setOpenSnackbar(true);
+            setTimeout(() => navigate('/admin/PostsCategory/PostsCategory-list'), 1200);
+        } catch (error) {
+            setSnackbarMessage(`Không thể thêm danh mục: ${error.response?.data?.message || error.message}`);
+            setOpenSnackbar(true);
+        }
     };
 
     const handleCloseSnackbar = () => {
@@ -64,40 +61,40 @@ const AddPostsCategory = () => {
             <form onSubmit={handleSubmit}>
                 <TextField
                     fullWidth
-                    label="Tiêu Đề"
+                    label="Tên Danh Mục"
                     name="title"
                     value={category.title}
                     onChange={handleChange}
                     required
                     sx={{ mb: 2 }}
                 />
-                <TextField
-                    fullWidth
-                    label="Slug"
-                    name="slug"
-                    value={category.slug}
-                    onChange={handleChange}
-                    required
-                    sx={{ mb: 2 }}
-                />
-                <TextField
-                    fullWidth
-                    label="Trạng Thái"
-                    name="status"
-                    value={category.status}
-                    onChange={handleChange}
-                    required
-                    sx={{ mb: 2 }}
-                />
+                <FormControl fullWidth sx={{ mb: 2 }}>
+                    <InputLabel id="status-label">Trạng Thái</InputLabel>
+                    <Select
+                        labelId="status-label"
+                        name="status"
+                        value={category.status}
+                        label="Trạng Thái"
+                        onChange={handleChange}
+                    >
+                        <MenuItem value="true">Hiển thị</MenuItem>
+                        <MenuItem value="false">Ẩn</MenuItem>
+                    </Select>
+                </FormControl>
                 <Button variant="contained" color="primary" type="submit" sx={{ mr: 2 }}>
                     Thêm Danh Mục
                 </Button>
-                <Button variant="outlined" color="secondary" onClick={() => navigate('/admin/PostsCategory-list')}>
+                <Button variant="outlined" color="secondary" onClick={() => navigate('/admin/PostsCategory/PostsCategory-list')}>
                     Quay Lại
                 </Button>
             </form>
-            <Snackbar open={openSnackbar} autoHideDuration={6000} onClose={handleCloseSnackbar}>
-                <Alert onClose={handleCloseSnackbar} severity={snackbarMessage.includes('thất bại') ? 'error' : 'success'}>
+            <Snackbar
+                open={openSnackbar}
+                autoHideDuration={6000}
+                onClose={handleCloseSnackbar}
+                anchorOrigin={{ vertical: 'top', horizontal: 'center' }}
+            >
+                <Alert onClose={handleCloseSnackbar} severity={snackbarMessage.includes('Không thể') ? 'error' : 'success'} sx={{ width: '100%' }}>
                     {snackbarMessage}
                 </Alert>
             </Snackbar>

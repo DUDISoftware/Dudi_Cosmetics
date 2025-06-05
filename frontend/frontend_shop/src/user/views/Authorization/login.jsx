@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import Input from "../../components/input/Input";
 import Button from "../../components/Button/Button";
-import loginImage from "../../../../public/login.png";
+import loginImage from "../../assets/login.png";
 import { useNavigate } from "react-router-dom";
 
 const Login = () => {
@@ -45,8 +45,8 @@ const Login = () => {
             // Lưu token và role vào localStorage
             localStorage.setItem("token", result.token);
             localStorage.setItem("role", result.user.role);
-
-            // Điều hướng dựa trên role
+            localStorage.setItem("user_id", result.user.id); 
+            localStorage.setItem("fullname", result.user.fullname); 
             if (result.user.role === "admin") {
                 navigate("/admin/voucherlist");
             } else {

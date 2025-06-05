@@ -4,7 +4,7 @@ const uniqueValidator = require("mongoose-unique-validator");
 const productSchema = new mongoose.Schema({
   user_id: { type: mongoose.Schema.Types.ObjectId, ref: "User", required: true },
   product_name: { type: String, unique: true, required: true },
-  slug: { type: String, unique: true, required: true },
+  slug: { type: String, required: true },
   short_description: String,
   long_description: String,
   is_hot: { type: Boolean, default: false },

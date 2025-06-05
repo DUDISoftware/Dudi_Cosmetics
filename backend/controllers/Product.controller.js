@@ -1,25 +1,22 @@
 const productService = require('../services/Product.service');
-const toSlug = require('../utils/slug.util'); // Import hàm toSlug
+const toSlug = require('../utils/slug.util');
 
 // Tạo sản phẩm mới
 exports.createProduct = async (req, res) => {
   try {
     const productData = req.body;
-    const file = req.file; // Lấy file từ request (sử dụng Multer)
+    const files = req.files;
 
-    // Kiểm tra dữ liệu đầu vào
-    if (!productData || !productData.product_name || !file) {
+    if (!productData || !productData.product_name || !files?.image_url?.[0]) {
       return res.status(400).json({
         status: false,
-        message: "Dữ liệu sản phẩm không hợp lệ hoặc thiếu file ảnh",
+        message: "Thiếu dữ liệu sản phẩm hoặc ảnh chính",
       });
     }
 
-    // Tạo slug từ product_name
     productData.slug = toSlug(productData.product_name);
 
-    // Gọi service để tạo sản phẩm
-    const newProduct = await productService.createProductSv(productData, file);
+    const newProduct = await productService.createProductSv(productData, files);
     res.status(201).json({
       status: true,
       message: "Tạo sản phẩm thành công",
@@ -39,7 +36,7 @@ exports.updateProduct = async (req, res) => {
   try {
     const { id } = req.params;
     const updateData = req.body;
-    const file = req.file; // Lấy file từ request (sử dụng Multer)
+    const files = req.files;
 
     if (!id || !updateData) {
       return res.status(400).json({
@@ -48,12 +45,11 @@ exports.updateProduct = async (req, res) => {
       });
     }
 
-    // Tạo slug từ product_name nếu có cập nhật product_name
     if (updateData.product_name) {
       updateData.slug = toSlug(updateData.product_name);
     }
 
-    const updatedProduct = await productService.updateProductSv(id, updateData, file);
+    const updatedProduct = await productService.updateProductSv(id, updateData, files);
     if (!updatedProduct) {
       return res.status(404).json({
         status: false,
@@ -108,6 +104,7 @@ exports.deleteProduct = async (req, res) => {
   }
 };
 
+
 // Lấy danh sách sản phẩm
 exports.getAllProducts = async (req, res) => {
   try {
@@ -159,5 +156,33 @@ exports.getProductById = async (req, res) => {
   }
 };
 
-
+// Lấy chi tiết sản phẩm theo slug
+exports.getProductBySlug = async (req, res) => {
+  try {
+    const { slug } = req.params;
+    if (!slug) {
+      return res.status(400).json({
+        status: false,
+        message: "Slug sản phẩm không hợp lệ",
+      });
+    }
+    const product = await productService.getProductBySlugSv(slug);
+    if (!product) {
+      return res.status(404).json({
+        status: false,
+        message: "Không tìm thấy sản phẩm",
+      });
+    }
+    res.status(200).json({
+      status: true,
+      data: product,
+    });
+  } catch (error) {
+    console.error("Lỗi lấy chi tiết sản phẩm:", error.message);
+    res.status(500).json({
+      status: false,
+      message: "Lỗi server",
+    });
+  }
+};
 

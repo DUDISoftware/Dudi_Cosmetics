@@ -25,6 +25,8 @@ const Header = (props) => {
     width: '100%',
     color: theme.palette.text.secondary,
   }));
+  // Lấy tên đăng nhập từ localStorage
+  const fullname = localStorage.getItem("fullname") || "User";
 
   return (
     <AppBarStyled position="sticky" color="default">
@@ -63,6 +65,8 @@ const Header = (props) => {
         </IconButton>
         <Box flexGrow={1} />
         <Stack spacing={1} direction="row" alignItems="center">
+          {/* Hiện tên đăng nhập trước icon user */}
+          <span style={{ marginRight: 8, fontWeight: 500 }}>{fullname}</span>
           <Profile />
         </Stack>
       </ToolbarStyled>

@@ -4,7 +4,7 @@ const uniqueValidator = require("mongoose-unique-validator");
 const postSchema = new mongoose.Schema({
   user_id: { type: mongoose.Schema.Types.ObjectId, ref: "User", required: true },
   title: { type: String, unique: true, required: true },
-  slug: { type: String, unique: true, required: true },
+  slug: { type: String, required: true },
   description: String,
   content: String,
   image_url: String,

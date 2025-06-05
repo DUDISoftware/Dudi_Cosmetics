@@ -1,11 +1,10 @@
 const express = require("express");
 const router = express.Router();
 const { uploadImage } = require('../utils/cloudinary.util'); // Multer cấu hình cho Cloudinary
+const { verifyToken, verifyAdmin } = require("../middleware/auth.middleware");
 const { register, login, getAllUsers, getUserById, updateUser, deleteUser
 } = require("../controllers/user.controller.js");
-const { verifyToken, verifyAdmin
-} = require("../middleware/auth.middleware.js");
-const { createProduct, getAllProducts, getProductById, updateProduct, deleteProduct
+const { createProduct, getAllProducts, getProductById, updateProduct, deleteProduct ,getProductBySlug
 } = require("../controllers/Product.controller.js");
 const { createProductBrand, getAllProductBrands, getProductBrandById, updateProductBrand, deleteProductBrand
 } = require("../controllers/ProductBrand.controller.js");
@@ -15,7 +14,7 @@ const { createPCParent, getAllPCParent, getPCParentId, updatePCParent, deletePCP
 } = require("../controllers/ProductCategoryParent.controller.js");
 const { createCategoryPost, getAllCategoryPost, getCategoryPostSById, updateCategoryPost, deleteCategoryPost,
 } = require("../controllers/PostCategory.controller.js");
-const { createPost, getAllPost, getPostSById, updatePost, deletePost,
+const { createPost, getAllPost, getPostSById, updatePost, deletePost, getPostBySlug
 } = require("../controllers/Posts.controller.js");
 const { createBanner, getAllBanners, getBannerById, updateBanner, deleteBanner,
 } = require("../controllers/banners.controller.js");
@@ -33,17 +32,24 @@ router.put("/users/update-user/:id", verifyToken, updateUser);
 router.delete("/users/delete-user/:id", verifyToken, verifyAdmin, deleteUser);
 
 // Product routes
-router.post("/product/add-product", verifyToken, verifyAdmin, uploadImage.single('image'), createProduct);
+router.post("/product/add-product", verifyToken, verifyAdmin, uploadImage.fields([
+    { name: 'image_url', maxCount: 1 },
+    { name: 'sub_images_urls', maxCount: 5 },
+  ]), createProduct);
 router.get("/Product/products-list", getAllProducts);
+router.get('/Products-detail-by-slug/:slug', getProductBySlug);
 router.get("/Product/products-detail/:id", getProductById);
-router.put("/Product/update-products/:id", verifyToken, verifyAdmin, uploadImage.single('image'), updateProduct);
+router.put("/Product/update-products/:id", verifyToken, verifyAdmin,uploadImage.fields([
+    { name: 'image_url', maxCount: 1 },
+    { name: 'sub_images_urls', maxCount: 5 },
+  ]), updateProduct);
 router.delete("/Product/delete-products/:id", verifyToken, verifyAdmin, deleteProduct);
 
 // ProductBrand routes
-router.post("/ProductBrand/add-ProductBrand", verifyToken, verifyAdmin, uploadImage.single('image'), createProductBrand);
+router.post("/ProductBrand/add-ProductBrand", verifyToken, verifyAdmin, uploadImage.single('image_url'), createProductBrand);
 router.get("/ProductBrand/ProductBrand-list", getAllProductBrands);
 router.get("/ProductBrand/ProductBrand-detail/:id", getProductBrandById);
-router.put("/ProductBrand/update-ProductBrand/:id", verifyToken, verifyAdmin, uploadImage.single('image'), updateProductBrand);
+router.put("/ProductBrand/update-ProductBrand/:id", verifyToken, verifyAdmin, uploadImage.single('image_url'), updateProductBrand);
 router.delete("/ProductBrand/delete-ProductBrand/:id", verifyToken, verifyAdmin, deleteProductBrand);
 
 // ProductCategoryParent routes
@@ -68,10 +74,11 @@ router.put("/PostsCategory/update-PostsCategory/:id", verifyToken, verifyAdmin, 
 router.delete("/PostsCategory/delete-PostsCategory/:id", verifyToken, verifyAdmin, deleteCategoryPost);
 
 // Posts routes
-router.post("/Posts/add-Posts", verifyToken, verifyAdmin, uploadImage.single('image'), createPost);
+router.post("/Posts/add-Posts", verifyToken, verifyAdmin, uploadImage.single('image_url'), createPost);
 router.get("/Posts/Posts-list", getAllPost);
 router.get("/Posts/Posts-detail/:id", getPostSById);
-router.put("/Posts/update-Posts/:id", verifyToken, verifyAdmin, uploadImage.single('image'), updatePost);
+router.get('/Posts-detail-by-slug/:slug', getPostBySlug);
+router.put("/Posts/update-Posts/:id", verifyToken, verifyAdmin, uploadImage.single('image_url'), updatePost);
 router.delete("/Posts/delete-Posts/:id", verifyToken, verifyAdmin, deletePost);
 
 // Banners routes
@@ -89,4 +96,3 @@ router.put("/Vouchers/update-Vouchers/:id", verifyToken, verifyAdmin, updateVouc
 router.delete("/Vouchers/delete-Vouchers/:id", verifyToken, verifyAdmin, deleteVoucher);
 
 module.exports = router;
-    

@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import Input from "../../components/input/Input";
 import Button from "../../components/Button/Button";
-import registerImage from "../../../../public/login.png";
+import registerImage from "../../assets/login.png"; 
 import { useNavigate } from "react-router-dom";
 
 const Register = () => {
