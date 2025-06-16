@@ -3,6 +3,7 @@ import { Navigate } from "react-router-dom";
 import Home from "../views/Home";
 import Login from "../views/Authorization/login";
 import Register from "../views/Authorization/register";
+import Cart from "../views/carts/Cart";
 
 // Loadable wrapper
 const Loadable = (Component) => (props) =>
@@ -36,6 +37,9 @@ const RouterUser = [
       // Posts routes
       { path: "/Posts/", element: <PostsList /> },
       { path: "/Posts/:slug", element: <PostsDetail /> },
+
+      //cart
+      {path:"/cart", element:<Cart/>}
     ],
   },
 ];

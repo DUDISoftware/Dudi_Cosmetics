@@ -92,7 +92,7 @@ const Header = () => {
             <div className="flex items-center space-x-4 text-gray-800 relative">
               <div className="relative flex items-center space-x-1">
                 <ShoppingCart className="w-5 h-5" />
-                <span className="text-xs">Giỏ Hàng</span>
+                <Link to="/cart" className="hover:text-red-500"> Giỏ hàng</Link>
                 <span className="absolute -top-1 -right-2 bg-red-600 text-white text-[10px] px-1 rounded-full">
                   2
                 </span>
