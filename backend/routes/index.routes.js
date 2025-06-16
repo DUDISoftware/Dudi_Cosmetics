@@ -20,7 +20,11 @@ const { createBanner, getAllBanners, getBannerById, updateBanner, deleteBanner,
 } = require("../controllers/banners.controller.js");
 const { createVoucher, getAllVouchers, getVoucherById, updateVoucher, deleteVoucher,
 } = require("../controllers/vouchers.controller.js");
+const cartsRoutes = require('./carts.routes');
+router.use('/carts', cartsRoutes); // ✅ Đây mới là nơi đúng để dùng router.use
 
+const cartItemRoutes = require("./cart_items.routes.js");
+router.use("/cart-items", cartItemRoutes); // ✅ Dùng router.use vì đây là router chính
 
 
 // User routes
@@ -94,5 +98,6 @@ router.get("/Vouchers/Vouchers-list", getAllVouchers);
 router.get("/Vouchers/Vouchers-detail/:id", getVoucherById);
 router.put("/Vouchers/update-Vouchers/:id", verifyToken, verifyAdmin, updateVoucher);
 router.delete("/Vouchers/delete-Vouchers/:id", verifyToken, verifyAdmin, deleteVoucher);
+
 
 module.exports = router;
