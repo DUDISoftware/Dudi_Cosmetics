@@ -11,7 +11,7 @@ const Home = () => {
     <>
         <Header/>
         <Banner/>
-        <TrendingProducts/>
+        <TrendingProducts/> 
         <OtherProducts/>
         <Testimonials/>
         <Footer/>

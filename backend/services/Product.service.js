@@ -106,7 +106,9 @@ exports.deleteProductSv = async (id) => {
 // Lấy tất cả sản phẩm
 exports.getAllProductsSv = async (filters = {}) => {
   try {
-    return await Product.find(filters);
+    return await Product.find(filters)
+      .populate("brand_id") // populate brand info để React dùng được brand._id, brand.Brand_name
+      .populate("category_id");
   } catch (error) {
     throw new Error("Lỗi khi lấy danh sách sản phẩm: " + error.message);
   }

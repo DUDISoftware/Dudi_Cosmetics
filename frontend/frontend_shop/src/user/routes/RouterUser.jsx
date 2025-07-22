@@ -6,12 +6,12 @@ import Register from "../views/Authorization/register";
 import Cart from "../views/carts/Cart";
 
 // Loadable wrapper
-const Loadable = (Component) => (props) =>
-(
+const Loadable = (Component) => (props) => (
   <Suspense fallback={<div>Đang tải...</div>}>
     <Component {...props} />
   </Suspense>
 );
+
 
 /* ****Pages Product***** */
 const ProductsList = Loadable(lazy(() => import('../views/Product/Products')));
@@ -20,6 +20,10 @@ const ProductsDetail = Loadable(lazy(() => import('../views/Product/ProductsDeta
 /* ****Pages Posts***** */
 const PostsList = Loadable(lazy(() => import('../views/Posts/Posts-list')));
 const PostsDetail = Loadable(lazy(() => import('../views/Posts/Posts-detail')));
+
+/* ****Pages Category***** */
+const ProductByCategory = Loadable(lazy(() => import('../views/Product/ProductByCategory')));
+
 
 const RouterUser = [
   {
@@ -39,7 +43,9 @@ const RouterUser = [
       { path: "/Posts/:slug", element: <PostsDetail /> },
 
       //cart
-      {path:"/cart", element:<Cart/>}
+      {path:"/cart", element:<Cart/>},
+         // ✅ New route for category filtering
+      { path: "/category/:childId", element: <ProductByCategory /> },
     ],
   },
 ];

@@ -103,16 +103,22 @@ exports.deleteProduct = async (req, res) => {
     });
   }
 };
-
-
-// Lấy danh sách sản phẩm
+// Lấy danh sách sản phẩm (có lọc theo category_id - danh mục con)
 exports.getAllProducts = async (req, res) => {
   try {
-    const filters = req.query || {};
-    const brands = await productService.getAllProductsSv(filters);
+    const { category_id, brand_id, ...filters } = req.query;
+
+    const query = { ...filters };
+    if (category_id) {
+      query.category_id = category_id;
+    }
+  if (brand_id) {
+      query.brand_id = brand_id;
+    }
+     const products = await productService.getAllProductsSv(query);
     res.status(200).json({
       status: true,
-      data: brands,
+      data: products,
     });
   } catch (error) {
     console.error("Lỗi lấy danh sách sản phẩm:", error.message);
@@ -122,7 +128,6 @@ exports.getAllProducts = async (req, res) => {
     });
   }
 };
-
 // Lấy chi tiết sản phẩm
 exports.getProductById = async (req, res) => {
   try {
@@ -155,7 +160,6 @@ exports.getProductById = async (req, res) => {
     });
   }
 };
-
 // Lấy chi tiết sản phẩm theo slug
 exports.getProductBySlug = async (req, res) => {
   try {

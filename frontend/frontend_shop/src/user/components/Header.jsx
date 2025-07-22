@@ -180,7 +180,7 @@ const Header = () => {
                     {category.subCategories.map((sub) => (
                       <li key={sub._id}>
                         <Link
-                          to={`/category?category=${sub._id}`}
+                          to={`/category/${sub._id}`}
                           className="text-gray-600 hover:text-red-600 block"
                           onClick={() => setIsMenuOpen(false)}
                         >
