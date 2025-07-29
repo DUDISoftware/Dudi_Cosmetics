@@ -26,6 +26,8 @@ router.use('/carts', cartsRoutes); // ✅ Đây mới là nơi đúng để dùn
 const cartItemRoutes = require("./cart_items.routes.js");
 router.use("/cart-items", cartItemRoutes); // ✅ Dùng router.use vì đây là router chính
 
+const paymentRoutes = require('./payment.routes');
+router.use('/payments', paymentRoutes);
 
 // User routes
 router.post("/users/register", register);

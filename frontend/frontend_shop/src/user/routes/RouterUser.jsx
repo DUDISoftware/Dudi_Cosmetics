@@ -4,6 +4,8 @@ import Home from "../views/Home";
 import Login from "../views/Authorization/login";
 import Register from "../views/Authorization/register";
 import Cart from "../views/carts/Cart";
+import Checkout from "../views/Checkout";
+import CheckoutRedirect from "../views/Checkout/CheckoutRedirect";
 
 // Loadable wrapper
 const Loadable = (Component) => (props) => (
@@ -46,6 +48,8 @@ const RouterUser = [
       {path:"/cart", element:<Cart/>},
          // ✅ New route for category filtering
       { path: "/category/:childId", element: <ProductByCategory /> },
+      { path: "/checkout", element: <Checkout /> },
+      { path: "/checkout/redirect", element: <CheckoutRedirect /> }
     ],
   },
 ];
