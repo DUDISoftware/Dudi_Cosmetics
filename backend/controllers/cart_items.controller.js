@@ -1,4 +1,5 @@
 const cartItemsService = require("../services/cart_items.service");
+const CartItem = require("../models/cart_items.model"); // THÊM DÒNG NÀY nếu chưa có
 const Product = require("../models/Product.model"); // THÊM DÒNG NÀY nếu chưa có
 
 const addItemToCart = async (req, res) => {

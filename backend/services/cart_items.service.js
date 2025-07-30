@@ -42,8 +42,37 @@ const getItemsByUserId = async (userId) => {
   return items;
 };
 
+const removeItemFromCart = async (userId, productId) => {
+  const cart = await findOrCreateCartByUserId(userId);
+  if (!cart) throw new Error("Không tìm thấy hoặc tạo giỏ hàng");
+
+  const item = await CartItem.findOneAndDelete({
+    cart_id: cart._id,
+    product_id: productId,
+  });
+
+  if (!item) throw new Error("Không tìm thấy sản phẩm trong giỏ hàng");
+  return item;
+};
+
+const updateCartItem = async (cartItemId, quantity) => {
+  const item = await CartItem.findById(cartItemId);
+  if (!item) throw new Error("Không tìm thấy mục giỏ hàng");
+
+  const product = await Product.findById(item.product_id);
+  if (!product) throw new Error("Không tìm thấy sản phẩm");
+
+  item.quantity = quantity;
+  item.price = product.base_price * quantity;
+  item.updated_at = Date.now();
+  await item.save();
+
+  return item;
+};
 
 module.exports = {
   addItemToCart,
   getItemsByUserId, // ✅ Thêm dòng này để export
+  removeItemFromCart,
+  updateCartItem
 };
